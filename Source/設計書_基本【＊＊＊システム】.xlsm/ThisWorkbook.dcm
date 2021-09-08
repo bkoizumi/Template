@@ -1,0 +1,234 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "ThisWorkbook"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = True
+'' *********************************************************************
+'' * 変数宣言
+'' *
+'' * Bunpei.Koizumi<bunbun0716@gmail.com>
+'' *********************************************************************
+'
+'' 必要とするアドインのバージョン
+'Private Const RequestAddInVer = 5.001
+'
+'' アドインのファイル名
+'Private Const AddInFileName = "BK_Specification"
+'
+'' アドインのファイルパス
+'Private AddInFilePath As String
+'
+'' タイプ
+'Public ThisBookType As String
+'
+'' アドインを読み込み専用で開くかどうか
+'Public OpenAddInReadOnly As Boolean
+'
+'Public DebugFlg As Boolean
+'
+'Sub test()
+'  DebugFlg = False
+'  OpenAddinAndRequire
+'End Sub
+'
+'
+'
+'Private Sub Workbook_BeforeClose(Cancel As Boolean)
+'  CloseAddinAndRequire
+'End Sub
+'
+'Private Sub Workbook_Open()
+'  DebugFlg = False
+'  OpenAddinAndRequire
+'End Sub
+'
+'' *********************************************************************
+'' * アドインのオープンと参照設定
+'' *
+'' * Bunpei.Koizumi<bunbun0716@gmail.com>
+'' *********************************************************************
+'Private Sub OpenAddinAndRequire()
+'
+'  ThisBookType = AddInFileName
+'  On Error GoTo OpenAddInError
+'
+'  If ExecAddIn("初回") = False Then
+'    GoTo OpenAddIn
+'  End If
+'  Exit Sub
+'
+''-------------------------------------------------------------------------------
+'' アドインが開かれていない時の処理
+'OpenAddIn:
+'
+'  Call CheckAddInPath
+'
+'  ' アドインを開く
+'  If CheckVersion Then
+'    Workbooks(AddInFileName & ".xlam").Close
+'    Exit Sub
+'  End If
+'
+'  If ExecAddIn("アドインが開かれていない時の処理") = False Then
+'    GoTo OpenAddInError
+'  Else
+'    ' アドインの参照設定
+'    ThisWorkbook.VBProject.References.AddFromFile AddInFilePath
+'  End If
+'
+''  Workbooks(AddInFileName & ".xlam").Application.Run ("call Library.SetReferences")
+'Exit Sub
+'
+''-------------------------------------------------------------------------------
+'' アドインが開けなかった時の処理
+'OpenAddInError:
+'  If Err.Number = 32813 Then
+'    Resume Next
+'  Else
+'    If DebugFlg Then
+'      Call MsgBox("[OpenAddInError]アドインのオープンに失敗しました", vbCritical)
+'    End If
+'    Application.StatusBar = "アドインが利用出来ません"
+'
+'  End If
+'End Sub
+'
+'' *********************************************************************
+'' * アドイン実行処理
+'' *
+'' * Bunpei.Koizumi<bunbun0716@gmail.com>
+'' *********************************************************************
+'Private Function ExecAddIn(Meg As String) As Boolean
+'
+'  On Error GoTo ExecAddinError
+'
+'  Workbooks(AddInFileName & ".xlam").Application.Run ("AddInCheck")
+'  ExecAddIn = True
+'  Exit Function
+'
+'ExecAddinError:
+'  If DebugFlg And Meg <> "初回" Then
+'    MsgBox (Err.Description & Meg)
+'  End If
+'  ExecAddIn = False
+'End Function
+'
+'' *********************************************************************
+'' * バージョンチェック
+'' *
+'' * Bunpei.Koizumi<bunbun0716@gmail.com>
+'' *********************************************************************
+'Private Function CheckVersion() As Boolean
+'
+'  Dim AddInVer As Single
+'
+'  On Error GoTo CheckVersionError
+'  Application.StatusBar = False
+'
+'  AddInVer = Workbooks(AddInFileName & ".xlam").Application.Run("AddInCheckVersion")
+'
+'  If RequestAddInVer > AddInVer Then
+'    If DebugFlg Then
+'      Call MsgBox("アドインのバージョンが古いため、利用できません。" & vbCr & "Ver." & RequestAddInVer & " が必要です[アドインVer." & AddInVer & "]", vbCritical)
+'    End If
+'    Application.StatusBar = AddInFileName & " Ver." & RequestAddInVer & " が必要です[" & AddInFileName & "Ver." & AddInVer & "]"
+'    CheckVersion = False
+'  Else
+'    CheckVersion = True
+'  End If
+'
+'CheckVersionError:
+'  If DebugFlg Then
+'    Meg = AddInFileName & " Ver." & RequestAddInVer & " が必要です[" & AddInFileName & "Ver." & AddInVer & "]"
+'    MsgBox ("[CheckVersionError] " & Meg)
+'  End If
+'  CheckVersion = False
+'
+'End Function
+'
+'' *********************************************************************
+'' * アドインのパス情報取得
+'' *
+'' * Bunpei.Koizumi<bunbun0716@gmail.com>
+'' *********************************************************************
+'Private Sub CheckAddInPath()
+'
+'  OpenAddInReadOnly = True
+'
+'  ' ライブラリ内での存在確認
+'  AddInFilePath = Application.UserLibraryPath & AddInFileName & ".xlam"
+'  If Dir(AddInFilePath, vbNormal) = "" Then
+'
+'    ' ワークブックと同じフォルダでの存在確認
+'    AddInFilePath = ThisWorkbook.Path & "\AddIns\" & AddInFileName & ".xlam"
+'    If Dir(AddInFilePath, vbNormal) = "" Then
+'      If DebugFlg Then
+'        Call MsgBox("[CheckAddInPath]アドインが見つかりません" & vbCrLf & AddInFilePath, vbCritical)
+'      End If
+'      Application.StatusBar = "アドインが見つかりません"
+'      Exit Sub
+'    End If
+'  End If
+'
+'  If DebugFlg Then
+'    MsgBox ("AddInFilePath:" & AddInFilePath & vbCrLf & "OpenAddInReadOnly:" & OpenAddInReadOnly)
+'  End If
+'
+'  ' === 自宅環境 =======================================================
+'  Dim WshNetworkObject As Object
+'  Set WshNetworkObject = CreateObject("WScript.Network")
+'  If WshNetworkObject.UserName = "bun" And WshNetworkObject.ComputerName = "MAIN" Then
+'
+'    OpenAddInReadOnly = False
+'    Application.Workbooks.Open Filename:=AddInFilePath, ReadOnly:=OpenAddInReadOnly
+'    Exit Sub
+'  End If
+'
+'  ' === 社内環境 =======================================================
+'  If WshNetworkObject.UserName = "a2015135" Then
+'
+'    OpenAddInReadOnly = False
+'    Application.Workbooks.Open Filename:=AddInFilePath, ReadOnly:=OpenAddInReadOnly
+'    Exit Sub
+'  End If
+'
+'  ' === その他環境(通常利用者) =========================================
+'  Application.Workbooks.Open Filename:=AddInFilePath, ReadOnly:=OpenAddInReadOnly
+'
+'
+'
+'
+'End Sub
+'
+'' *********************************************************************
+'' * アドインのクローズと参照設定解除
+'' *
+'' * Bunpei.Koizumi<bunbun0716@gmail.com>
+'' *********************************************************************
+' Sub CloseAddinAndRequire()
+'
+'  On Error GoTo CloseAddInError
+'
+'  ' アドインの参照設定解除
+'  Dim Ref
+'  With ActiveWorkbook.VBProject
+'    For Each Ref In ActiveWorkbook.VBProject.References
+'      If Ref.Name = AddInFileName Then
+'        .References.Remove Ref
+'      End If
+'    Next Ref
+'  End With
+'  Workbooks(AddInFileName & ".xlam").Close
+'Exit Sub
+'
+'CloseAddInError:
+'  Resume Next
+'End Sub
+'
+'
+'
+'

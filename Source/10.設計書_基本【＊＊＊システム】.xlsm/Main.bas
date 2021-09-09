@@ -6,7 +6,13 @@ Attribute VB_Name = "Main"
 ' *********************************************************************
 Sub addPage(control As IRibbonControl)
   Call Library.StartScript
-  Call Specification.addPage
+  
+  If ActiveCell.Value = "ƒVƒXƒeƒ€" Then
+    Call Specification.addPage(ActiveCell.Address)
+  Else
+    Call Specification.addPage
+  End If
+  
   Call Library.EndScript
   
   ThisWorkbook.Activate
@@ -25,13 +31,7 @@ Sub MakeMenu(control As IRibbonControl)
   ThisWorkbook.Activate
 End Sub
 
-Sub –ÚŸ¶¬()
-  Call Library.StartScript
-  Call Specification.makeTOC
-  Call Library.EndScript
-  
-  ThisWorkbook.Activate
-End Sub
+
 
 ' *********************************************************************
 ' * ˆóü”ÍˆÍİ’è

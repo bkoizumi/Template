@@ -9,8 +9,8 @@
   "files.trimTrailingWhitespace": true,
   "files.exclude": {
     "~$*": true
-    ,"**/*.xl*": true
-  },
+    // ,"**/*.xl*": true
+},
 
   // エディター設定---------------------------------------------------------------------------------------
   "editor.cursorBlinking": "phase",

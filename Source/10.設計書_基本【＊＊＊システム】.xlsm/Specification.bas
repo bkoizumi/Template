@@ -18,7 +18,7 @@ Function makeTOC()
   'On Error GoTo catchError
   FuncName = "Specification.makeTOC"
 
-  Call Library.StartScript
+  Call Library.startScript
   Call init.setting(True)
   Call Ctl_ProgressBar.ShowStart
   Call Library.showDebugForm(FuncName & "============================================")
@@ -139,7 +139,7 @@ Function makeTOC()
       'タイトルが目次でなければページ追加
       If Cells(RowCnt - 2, colLine + 2) Like "[目次,もくじ]*" Then
       Else
-        Call addPage(Cells(RowCnt - 3, 1).Address)
+        Call addPage(Cells(RowCnt - 3, 1).Address, True)
       End If
       
       Range(Cells(RowCnt, colLine + 2), Cells(RowCnt, colLine + 2 + setVal("TocTitle"))).Select
@@ -155,7 +155,7 @@ Function makeTOC()
   Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.ShowEnd
-  Call Library.EndScript
+  Call Library.endScript
   '----------------------------------------------
 
   Exit Function
@@ -165,7 +165,7 @@ catchError:
 End Function
 
 '==================================================================================================
-Function addPage(Optional targetCell As String)
+Function addPage(Optional targetCell As String, Optional addMenu As Boolean = False)
   Dim line As Long, endLine As Long
   
   '処理開始--------------------------------------
@@ -191,14 +191,22 @@ Function addPage(Optional targetCell As String)
 
   '処理終了--------------------------------------
   If targetCell = "" Then
-    Application.Goto Reference:=Range("A" & endLine), Scroll:=True
-    Range("D" & endLine + 1).Select
-  Else
+    Range("D" & endLine + 1) = Range("D" & endLine + 1 - setVal("PageLine"))
+    targetCell = "A" & endLine
+  
+  ElseIf targetCell <> "" Then
+    Range("D" & endLine + 1) = Range("D" & endLine + 1 - setVal("PageLine"))
+    
+    
+  ElseIf addMenu = True Then
     Cells(Range(targetCell).Row + 1, 4) = "目次" & WorksheetFunction.RoundDown(Range(targetCell).Row / 44, 0) + 1
     'Cells(Range(targetCell).Row + 1, 4) = "目次"
-    
-    Application.Goto Reference:=Range(targetCell), Scroll:=True
+
   End If
+  Call Library.showDebugForm(targetCell)
+  Application.Goto Reference:=Range(targetCell), Scroll:=True
+  Range(targetCell).Offset(1, 1).Select
+  
   Call Library.showDebugForm("=================================================================")
 '  Call Ctl_ProgressBar.ShowEnd
 '  Call Library.EndScript
@@ -243,7 +251,7 @@ Sub リセット()
   Dim endLine As Long, line As Long
   Dim count As Long
   
-  Call Library.StartScript
+  Call Library.startScript
   Call init.setting(True)
 
   Call Library.showDebugForm(FuncName & "============================================")
@@ -280,5 +288,53 @@ Sub リセット()
   
   
   Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.EndScript
+  Call Library.endScript
 End Sub
+
+
+'**************************************************************************************************
+' * 設計書用印刷範囲設定
+' *
+' * Bunpei.Koizumi<bunpei.koizumi@gmail.com>
+'**************************************************************************************************
+Function SetPrintArea()
+  
+  Dim line As Long, endLine As Long
+  Dim PageCnt As Long
+  
+  '処理開始----------------------------------------------------------------------------------------
+  'On Error GoTo catchError
+  FuncName = "Ctl_Specification.SetPrintArea"
+
+  Call init.setting
+  Call Library.showDebugForm(FuncName & "===================================")
+  '----------------------------------------------
+  sheetMain.Select
+  endLine = Cells(Rows.count, 50).End(xlUp).Row
+  sheetMain.PageSetup.PrintArea = "A1:AV" & endLine
+
+  '改ページプレビュー
+  ActiveWindow.View = xlPageBreakPreview
+  PageCnt = 1
+  For line = 1 + setVal("PageLine") To endLine Step setVal("PageLine")
+    Range("A" & line).Select
+    Set sheetMain.HPageBreaks(PageCnt).Location = Range("A" & line)
+    
+    Call Ctl_ProgressBar.ShowCount("印刷範囲設定", line, endLine, Range("D" & line + 1))
+    PageCnt = PageCnt + 1
+  Next
+
+  ActiveWindow.View = xlNormalView
+  
+  '処理終了----------------------------------------------------------------------------------------
+  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Call Library.showDebugForm("=================================================================")
+  '----------------------------------------------
+
+  Exit Function
+'エラー発生時--------------------------------------------------------------------------------------
+catchError:
+  ActiveWindow.View = xlNormalView
+  Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+End Function
+

@@ -16,10 +16,10 @@ Public sheetCopy      As Worksheet
 Public sheetMain      As Worksheet
 
 'グローバル変数----------------------------------
-Public Const thisAppName    As String = "Template01"
+Public Const thisAppName    As String = "設計書"
 Public Const thisAppVersion As String = "V1.0-beta.1"
 Public FuncName             As String
-
+Public logFile              As String
 
 '設定値保持
 Public setVal          As Object
@@ -83,7 +83,9 @@ Function setting(Optional reCheckFlg As Boolean)
       setVal.add sheetSetting.Range("A" & line).Text, sheetSetting.Range("B" & line).Text
     End If
   Next
-   
+  
+  logFile = ThisWorkbook.Path & "\ExcelMacro.log"
+  
   Call 名前定義
   
   Exit Function
@@ -110,8 +112,7 @@ Function 名前定義()
     If Name.Visible = False Then
       Name.Visible = True
     End If
-    If Not Name.Name Like "*!Print_Area" And Not Name.Name Like "*!Print_Titles" And _
-      Not Name.Name Like "Slc*" And Not Name.Name Like "Pvt*" And Not Name.Name Like "Tbl*" Then
+    If Not Name.Name Like "[Print_,Slc,Pvt,Tbl,改訂]*" Then
       Name.delete
     End If
   Next

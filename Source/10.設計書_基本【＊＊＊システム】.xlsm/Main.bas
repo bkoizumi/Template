@@ -5,7 +5,7 @@ Attribute VB_Name = "Main"
 ' * Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 ' *********************************************************************
 Sub addPage(control As IRibbonControl)
-  Call Library.StartScript
+  Call Library.startScript
   
   If ActiveCell.Value = "システム" Then
     Call Specification.addPage(ActiveCell.Address)
@@ -13,7 +13,7 @@ Sub addPage(control As IRibbonControl)
     Call Specification.addPage
   End If
   
-  Call Library.EndScript
+  Call Library.endScript
   
   ThisWorkbook.Activate
 End Sub
@@ -24,9 +24,9 @@ End Sub
 ' * Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 ' *********************************************************************
 Sub MakeMenu(control As IRibbonControl)
-  Call Library.StartScript
+  Call Library.startScript
   Call Specification.makeTOC
-  Call Library.EndScript
+  Call Library.endScript
   
   ThisWorkbook.Activate
 End Sub
@@ -39,11 +39,13 @@ End Sub
 ' * Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 ' *********************************************************************
 Sub SetPrintArea(control As IRibbonControl)
-  Call Library.StartScript
-  Call Specification.SetPrintArea
-  Call Library.EndScript
+  Call Library.startScript
+  Call Ctl_ProgressBar.ShowStart
   
-  ThisWorkbook.Activate
+  Call Specification.SetPrintArea
+  
+  Call Ctl_ProgressBar.ShowEnd
+  Call Library.endScript
 End Sub
 
   
@@ -60,7 +62,7 @@ Function getMenuList(control As IRibbonControl, ByRef returnedVal)
   'On Error GoTo catchError
   FuncName = "Main.getMenuList"
 
-  Call Library.StartScript
+  Call Library.startScript
   Call init.setting(True)
   'Call Library.showDebugForm(FuncName & "============================================")
   sheetMain.Select
@@ -105,7 +107,7 @@ Function getMenuList(control As IRibbonControl, ByRef returnedVal)
 
 
   '処理終了--------------------------------------
-  Call Library.EndScript
+  Call Library.endScript
   '----------------------------------------------
   
   
@@ -122,9 +124,9 @@ Function selectActiveCell(control As IRibbonControl)
   Dim sheetName As Worksheet
   Dim line
   
-  Call Library.StartScript
+  Call Library.startScript
   line = Replace(control.id, "CellID_", "")
   
   Application.Goto Reference:=Range("A" & line), Scroll:=True
-  Call Library.EndScript
+  Call Library.endScript
 End Function

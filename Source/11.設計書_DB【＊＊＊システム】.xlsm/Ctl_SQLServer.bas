@@ -59,7 +59,7 @@ catchError:
 End Function
 
 '==================================================================================================
-Function テーブル情報取得()
+Function getTableInfo()
   Dim line As Long, endLine As Long, colLine As Long, endColLine As Long
   Dim tableName As String
   
@@ -97,7 +97,7 @@ Function テーブル情報取得()
     Range("T2") = TblRecordset.Fields("create_date").Value
     Range("T3") = TblRecordset.Fields("modify_date").Value
     
-    Call カラム情報取得
+    Call getColumnInfo
     TblRecordset.MoveNext
   Loop
   Set TblRecordset = Nothing
@@ -120,9 +120,9 @@ End Function
 
 
 '==================================================================================================
-Function カラム情報取得()
+Function getColumnInfo()
   Dim line As Long, endLine As Long
-  Dim ColumnName As String
+  Dim columnName As String
   Dim columnType As String
   Dim columnDigit As String
   Dim columnDefValue As String
@@ -281,8 +281,8 @@ Function カラム情報取得()
       
     End If
     If ClmRecordset.Fields("ID").Value <= 10 Then
-      ColumnName = ColumnNames(ClmRecordset.Fields("ID").Value)
-      Range(ColumnName & ClmRecordset.Fields("Index_ID").Value + 8) = indexCount
+      columnName = ColumnNames(ClmRecordset.Fields("ID").Value)
+      Range(columnName & ClmRecordset.Fields("Index_ID").Value + 8) = indexCount
     End If
     
     

@@ -11,18 +11,9 @@ Function showAddSheetOption()
 '  On Error GoTo catchError
   
   Call init.Setting
-  topPosition = setVal("Frm_NewSheetTop")
-  leftPosition = setVal("Frm_NewSheetLeft")
   
   With Frm_NewSheet
-    If topPosition = 0 Then
-      .StartUpPosition = 2
-    Else
-      .StartUpPosition = 0
-      .Top = topPosition
-      .Left = leftPosition
-    End If
-    '.Show vbModeless
+    .StartUpPosition = 1
     .Show
   End With
 

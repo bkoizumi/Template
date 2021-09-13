@@ -23,7 +23,7 @@ Public isDBOpen           As Boolean
 Public runFlg             As Boolean
 
 Public PrgP_Max As Long
-Public PrgC_Max As Long
+Public PrgP_Cnt As Long
 
 Public FuncName As String
 
@@ -72,6 +72,9 @@ Function usetting(Optional flg As Boolean = True)
   
   Set setVal = Nothing
   
+  PrgP_Max = 0
+  PrgP_Cnt = 0
+  
   If flg = True Then
     runFlg = False
   End If
@@ -113,10 +116,7 @@ Function Setting(Optional reCheckFlg As Boolean)
     End If
   Next
 
-  Select Case setVal("ODBCDriver")
-    Case "SQLServer"
-      ConnectServer = "Provider=SQLOLEDB;Data Source=" & setVal("DBServer") & ";Initial Catalog=" & setVal("DBName") & ";Trusted_Connection=Yes"
-    
+  Select Case setVal("DBMS")
     Case "MSAccess"
       accFileName = Library.getFileInfo(setVal("DBServer"), , "fileName")
       accFileDir = Library.getFileInfo(setVal("DBServer"), , "CurrentDir")
@@ -128,9 +128,24 @@ Function Setting(Optional reCheckFlg As Boolean)
       For line = 5 To endLine
         ArryTypeName(sheetSetting.Range("L" & line)) = sheetSetting.Range("M" & line)
       Next
+    Case "MySQL"
+      ConnectServer = "Driver={" & setVal("ODBCDriver") & "};" & _
+                      " Server=" & setVal("DBServer") & ";" & _
+                      " Port=" & setVal("Port") & ";" & _
+                      " Database=" & setVal("DBName") & ";" & _
+                      " User=" & setVal("userID") & ";" & _
+                      " Password=" & setVal("passwd") & ";" & _
+                      " Charset=sjis;"
+    
+    Case "PostgreSQL"
+      ConnectServer = ""
       
-      
+    Case "SQLServer"
+      ConnectServer = "Provider=SQLOLEDB;Data Source=" & setVal("DBServer") & ";Initial Catalog=" & setVal("DBName") & ";Trusted_Connection=Yes"
+  
   End Select
+  
+  
   
   Call –¼‘O’è‹`
   Exit Function

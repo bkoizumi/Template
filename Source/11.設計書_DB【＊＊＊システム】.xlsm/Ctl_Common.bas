@@ -7,20 +7,6 @@ Option Explicit
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
 '==================================================================================================
-Function addRow(line As Long)
-
-  If line >= startLine + 2 Then
-    Rows(line & ":" & line).Copy
-    Rows(line & ":" & line).Insert Shift:=xlDown
-    Range("A" & line) = ""
-    Application.CutCopyMode = False
-  End If
-  
-End Function
-
-
-
-'==================================================================================================
 Function ClearData()
   Dim line As Long, endLine As Long
 
@@ -30,58 +16,70 @@ Function ClearData()
   FuncName = "Ctl_Common.ClearData"
   '--------------------------
   
-  If runFlg = False Then
-    Call Library.startScript
-    Call init.Setting
-    Call Ctl_ProgressBar.showStart
-  End If
-  Call Library.showDebugForm(FuncName & "==========================================")
-  '----------------------------------------------
+  Call init.Setting
+  Call Library.showDebugForm(FuncName & "=============================================")
   
   endLine = Cells(Rows.count, 1).End(xlUp).Row
-    
   line = startLine
+  
   Do Until Range("A" & line) = "End"
-    Rows(line & ":" & line).Select
-    
     If Range("A" & line) = "" Then
       Rows(line & ":" & line).Delete Shift:=xlUp
       line = line - 1
     ElseIf Range("A" & line) = "Column" Then
       On Error Resume Next
-      Range("C" & line & ":AA" & line).SpecialCells(xlCellTypeConstants, 23).ClearContents
+      Range("B" & line & ":AA" & line).SpecialCells(xlCellTypeConstants, 23).ClearContents
       On Error GoTo catchError
     
     End If
-    Call Ctl_ProgressBar.showBar(thisAppName, PrgC_Max, PrgP_Max, line, endLine, "データクリア")
+'    Call Ctl_ProgressBar.showBar(thisAppName, 1, PrgP_Max, line, endLine, "データクリア")
     line = line + 1
   Loop
+  Columns("L:R").EntireColumn.Hidden = True
   
-  '処理終了----------------------------------------------------------------------------------------
-  Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
-  If runFlg = False Then
-    Call Ctl_ProgressBar.showEnd
-    Call Library.endScript
-  End If
-  '----------------------------------------------
-
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
   Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
 End Function
 
- 
+
+'==================================================================================================
+Function addRow(line As Long)
+
+  If line >= startLine + 2 Then
+    Rows(line & ":" & line).Copy
+    Rows(line & ":" & line).Insert Shift:=xlDown
+    Range("A" & line) = ""
+    Application.CutCopyMode = False
+  End If
+End Function
+
+
+'==================================================================================================
+Function chkIndexRow()
+  Dim line As Long, endLine As Long
+  Dim IndexRow As Long
+  
+  endLine = Cells(Rows.count, 1).End(xlUp).Row
+  For line = startLine To endLine
+    If Range("A" & line) = "IndexStart" Then
+      IndexRow = line
+      Exit For
+    End If
+  Next
+  Call Library.showDebugForm("IndexRow：" & IndexRow)
+  chkIndexRow = IndexRow
+End Function
+
 
 '==================================================================================================
 Function addSheet(newSheetName As String)
   
-'  On Error GoTo catchError
+  On Error GoTo catchError
   
   If Library.chkSheetExists(newSheetName) = False Then
     sheetCopy.Copy After:=Worksheets(Worksheets.count)
-'    ActiveWorkbook.Sheets(Worksheets.count).Tab.ColorIndex = -4142
     ActiveWorkbook.Sheets(Worksheets.count).Name = newSheetName
   End If
   Sheets(newSheetName).Select
@@ -176,5 +174,4 @@ Function makeTblList()
 catchError:
   Call Library.showNotice(400, Err.Description, True)
 End Function
-
 

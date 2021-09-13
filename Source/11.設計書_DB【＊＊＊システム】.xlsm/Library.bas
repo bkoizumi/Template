@@ -1583,21 +1583,21 @@ End Function
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-Function getSheetList(ColumnName As String)
+Function getSheetList(columnName As String)
 
   Dim i As Long
   Dim sheetName As Object
 
   i = 3
-  If ColumnName = "" Then
-    ColumnName = "E"
+  If columnName = "" Then
+    columnName = "E"
   End If
 
   On Error GoTo GetSheetListError:
   Call startScript
 
   '現設定値のクリア
-  Worksheets("設定").Range(ColumnName & "3:" & ColumnName & "100").Select
+  Worksheets("設定").Range(columnName & "3:" & columnName & "100").Select
   Selection.Borders(xlDiagonalDown).LineStyle = xlNone
   Selection.Borders(xlDiagonalUp).LineStyle = xlNone
   Selection.Borders(xlEdgeLeft).LineStyle = xlNone
@@ -1617,18 +1617,18 @@ Function getSheetList(ColumnName As String)
   For Each sheetName In ActiveWorkbook.Sheets
 
     'シート名の設定
-    Worksheets("設定").Range(ColumnName & i).Select
-    Worksheets("設定").Range(ColumnName & i) = sheetName.Name
+    Worksheets("設定").Range(columnName & i).Select
+    Worksheets("設定").Range(columnName & i) = sheetName.Name
 
     ' セルの背景色解除
-    With Worksheets("設定").Range(ColumnName & i).Interior
+    With Worksheets("設定").Range(columnName & i).Interior
       .Pattern = xlPatternNone
       .Color = xlNone
     End With
 
     ' シート色と同じ色をセルに設定
     If Worksheets(sheetName.Name).Tab.Color Then
-      With Worksheets("設定").Range(ColumnName & i).Interior
+      With Worksheets("設定").Range(columnName & i).Interior
         .Pattern = xlPatternNone
         .Color = Worksheets(sheetName.Name).Tab.Color
       End With
@@ -1667,7 +1667,7 @@ Function getSheetList(ColumnName As String)
     i = i + 1
   Next
 
-  Worksheets("設定").Range(ColumnName & "3").Select
+  Worksheets("設定").Range(columnName & "3").Select
   Call endScript
   Exit Function
 '==================================================================================================
@@ -1712,7 +1712,7 @@ Function showDebugForm(ByVal meg1 As String, Optional meg2 As String)
   Dim runTime As Date
   Dim StartUpPosition As Long
 
-'  On Error GoTo catchError
+  On Error GoTo catchError
 
   runTime = Format(Now(), "yyyy/mm/dd hh:nn:ss")
 
@@ -1721,6 +1721,7 @@ Function showDebugForm(ByVal meg1 As String, Optional meg2 As String)
   End If
 
   meg1 = Replace(meg1, vbNewLine, " ")
+  meg1 = Application.WorksheetFunction.Trim(meg1)
   
   Select Case setVal("debugMode")
     Case "file"
@@ -1807,16 +1808,18 @@ Function showNotice(Code As Long, Optional process As String, Optional runEndflg
       Call MsgBox(Message, vbCritical, thisAppName)
   End Select
   
-  Message = Replace(Message, vbNewLine & "処理を中止します", "。処理を中止します")
+  Message = Replace(Message, vbNewLine & "処理を中止します", "処理を中止します")
+  Message = Replace(Message, "<", "")
+  Message = Replace(Message, ">", "")
+  
   Message = "[" & Code & "]" & Message
+  Call Library.showDebugForm(Message)
   
   '画面描写制御終了処理
   If runEndflg = True Then
     Call endScript
     Call Ctl_ProgressBar.showEnd
     End
-  Else
-    Call Library.showDebugForm(Message)
   End If
 
   Exit Function

@@ -19,6 +19,7 @@ Function dbOpen()
     Call Library.showDebugForm("Database is already opened")
     Exit Function
   End If
+  Call Library.showDebugForm("ConnectServer：" & ConnectServer)
   
   Set dbCon = New ADODB.Connection
   dbCon.Open ConnectServer
@@ -31,7 +32,7 @@ Function dbOpen()
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
   isDBOpen = False
-  Call Library.showNotice(400, Err.Description, True)
+  Call Library.showNotice(500, Err.Description, True)
 End Function
 
 '==================================================================================================
@@ -53,7 +54,7 @@ Function dbClose()
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
   Call Library.showDebugForm("isDBOpen：" & isDBOpen)
-  Call Library.showNotice(400, Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(501, Err.Description, True)
 End Function
 
 
@@ -63,24 +64,20 @@ Function getTableInfo()
   Dim line As Long, endLine As Long
   Dim cat As ADOX.Catalog
   Dim tbl As ADOX.Table
-  Dim qry1 As ADOX.View
-  Dim qry2 As ADOX.Procedure
-  Dim constr As String
-  Dim DBFile As String
-  
+  Dim tableCnt As Long
 
-  '処理開始----------------------------------------------------------------------------------------
+  '処理開始--------------------------------------
   'On Error GoTo catchError
   '初期値設定----
-  runFlg = True
   FuncName = "Ctl_Access.getTableInfo"
-
-  Call Library.startScript
-  Call init.Setting
-  Call Ctl_ProgressBar.showStart
+  PrgP_Max = 4
+  If runFlg = False Then
+    Call Library.startScript
+    Call init.Setting
+    Call Ctl_ProgressBar.showStart
+  End If
   Call Library.showDebugForm(FuncName & "==========================================")
   'Call Ctl_Access.dbOpen
-  
   '----------------------------------------------
   Set cat = New ADOX.Catalog
   cat.ActiveConnection = ConnectServer
@@ -93,36 +90,31 @@ Function getTableInfo()
       Case "VIEW"
         Call Ctl_Common.addSheet(tbl.Name)
         Range("B2") = "クエリビュー"
-
       
-      'リンクテーブル（ODBC以外）
-      Case "LINK"
+      Case "LINK", "PASS-THROUGH"
         Call Ctl_Common.addSheet(tbl.Name)
         Range("B2") = "リンクテーブル"
         
-      'Access システムテーブル、Microsoft jet システムテーブル
+      'システムテーブル
       Case "ACCESS TABLE", "SYSTEM TABLE"
-        GoTo Lbl_nextfor
-        
-      'リンクテーブル（ODBC）
-      Case "PASS-THROUGH"
-        Call Library.showDebugForm("tbl.Name：" & tbl.Name)
         GoTo Lbl_nextfor
     End Select
     
     Range("D5") = ""
-    Range("H5") = tbl.Name
+    Range("F5") = tbl.Name
     Call Ctl_Access.getColumnInfo
 
 Lbl_nextfor:
+  tableCnt = tableCnt + 1
+  Call Ctl_ProgressBar.showBar(thisAppName, 1, PrgP_Max, tableCnt, cat.Tables.count, "テーブル情報取得：" & tbl.Name)
   Next tbl
   Call Ctl_Common.makeTblList
   
-  '処理終了----------------------------------------------------------------------------------------
+  '処理終了--------------------------------------
 '  Call Ctl_Access.dbClose
   Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
-  If runFlg = True Then
+  If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
     Call init.usetting
@@ -154,11 +146,16 @@ Function getColumnInfo()
   
   '初期値設定----------------
   FuncName = "Ctl_Access.getColumnInfo"
-  PrgP_Max = 2
+  If PrgP_Max = 0 Then
+    PrgP_Max = 2
+  End If
   '--------------------------
-  Call Library.startScript
-  Call init.Setting
-  Call Ctl_ProgressBar.showStart
+  If runFlg = False Then
+    Call Library.startScript
+    Call init.Setting
+    Call Ctl_ProgressBar.showStart
+  End If
+  
   Call Library.showDebugForm(FuncName & "==========================================")
   Call Ctl_Access.dbOpen
   '----------------------------------------------
@@ -174,9 +171,9 @@ Function getColumnInfo()
   line = startLine
   columnCnt = 1
   For Each Fields In ClmRecordset.Fields
-    Range("E" & line) = Fields.Name
-    Range("G" & line) = ArryTypeName(Fields.Type)
-    Range("H" & line) = Fields.DefinedSize
+    Range("F" & line) = Fields.Name
+    Range("E" & line) = ArryTypeName(Fields.Type)
+    Range("F" & line) = Fields.DefinedSize
     
     Call Ctl_ProgressBar.showBar(thisAppName, 1, PrgP_Max, columnCnt, ClmRecordset.Fields.count, "カラム情報取得：" & Fields.Name)
 
@@ -187,7 +184,7 @@ Function getColumnInfo()
   Next
   '処理終了----------------------------------------------------------------------------------------
   Call Ctl_Access.dbClose
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("B8"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd

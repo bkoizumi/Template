@@ -369,10 +369,29 @@ End Function
 '**************************************************************************************************
 '--------------------------------------------------------------------------------------------------
 Function Optionshow(control As IRibbonControl)
-  Ctl_Option.showOption
+  Call Ctl_Option.showOption
 End Function
 
-
+'--------------------------------------------------------------------------------------------------
+Function ClearAll(control As IRibbonControl)
+  '処理開始----------------------------------------------------------------------------------------
+  Call Library.startScript
+  Call init.Setting
+  Call Ctl_ProgressBar.showStart
+  runFlg = True
+  Call Library.showDebugForm(FuncName & "==========================================")
+  '----------------------------------------------
+  
+  Call Ctl_Option.ClearAll
+  
+  '処理終了----------------------------------------------------------------------------------------
+  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Call Library.showDebugForm("=================================================================")
+  Call Ctl_ProgressBar.showEnd
+  Call Library.endScript
+  Call init.usetting
+  '----------------------------------------------
+End Function
 
 '**************************************************************************************************
 ' * リボンメニュー[共通]
@@ -395,10 +414,80 @@ End Function
 '**************************************************************************************************
 '--------------------------------------------------------------------------------------------------
 Function getTableInfo(control As IRibbonControl)
-  Ctl_SQLServer.テーブル情報取得
+  
+  '処理開始--------------------------------------
+  Call Library.startScript
+  Call init.Setting
+  Call Ctl_ProgressBar.showStart
+  runFlg = True
+  Call Library.showDebugForm(FuncName & "==========================================")
+  '----------------------------------------------
+  
+  Select Case setVal("DBMS")
+    Case "MSAccess"
+      Call Ctl_Access.getTableInfo
+      
+    Case "MySQL"
+      Call Ctl_MySQL.dbOpen
+      Call Ctl_MySQL.getTableInfo
+      Call Ctl_MySQL.dbClose
+      
+    Case "PostgreSQL"
+      Ctl_Access.getTableInfo
+      
+    Case "SQLServer"
+      Call Ctl_SQLServer.getTableInfo
+      
+    Case Else
+  End Select
+  
+  '処理終了--------------------------------------
+  
+'  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Call Library.showDebugForm("=================================================================")
+  Call Ctl_ProgressBar.showEnd
+  Call Library.endScript
+  Call init.usetting
+  '----------------------------------------------
+  
 End Function
+
+
 '--------------------------------------------------------------------------------------------------
 Function getColumnInfo(control As IRibbonControl)
-  Ctl_SQLServer.カラム情報取得
+  
+  '処理開始--------------------------------------
+  Call Library.startScript
+  Call init.Setting
+  Call Ctl_ProgressBar.showStart
+  runFlg = True
+  Call Library.showDebugForm(FuncName & "==========================================")
+  '----------------------------------------------
+
+  Select Case setVal("DBMS")
+    Case "MSAccess"
+      Call Ctl_Access.getColumnInfo
+      
+    Case "MySQL"
+      Call Ctl_MySQL.dbOpen
+      Call Ctl_MySQL.getColumnInfo
+      Call Ctl_MySQL.dbClose
+      
+    Case "PostgreSQL"
+      Call Ctl_Access.getColumnInfo
+      
+    Case "SQLServer"
+      Call Ctl_SQLServer.getColumnInfo
+      
+    Case Else
+  End Select
+  
+  '処理終了--------------------------------------
+'  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Call Library.showDebugForm("=================================================================")
+  Call Ctl_ProgressBar.showEnd
+  Call Library.endScript
+  Call init.usetting
+  '----------------------------------------------
 End Function
 

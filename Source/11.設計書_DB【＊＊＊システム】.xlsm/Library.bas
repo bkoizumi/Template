@@ -327,24 +327,24 @@ End Function
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
 Function chkHeader(baseNameArray As Variant, chkNameArray As Variant)
-  Dim errMeg As String
+  Dim ErrMeg As String
   Dim i As Integer
 
 On Error GoTo catchError
-  errMeg = ""
+  ErrMeg = ""
 
   If UBound(baseNameArray) <> UBound(chkNameArray) Then
-    errMeg = "個数が異なります。"
-    errMeg = errMeg & vbNewLine & UBound(baseNameArray) & "<=>" & UBound(chkNameArray) & vbNewLine
+    ErrMeg = "個数が異なります。"
+    ErrMeg = ErrMeg & vbNewLine & UBound(baseNameArray) & "<=>" & UBound(chkNameArray) & vbNewLine
   Else
     For i = LBound(baseNameArray) To UBound(baseNameArray)
       If baseNameArray(i) <> chkNameArray(i) Then
-        errMeg = errMeg & vbNewLine & i & ":" & baseNameArray(i) & "<=>" & chkNameArray(i)
+        ErrMeg = ErrMeg & vbNewLine & i & ":" & baseNameArray(i) & "<=>" & chkNameArray(i)
       End If
     Next
   End If
 
-  chkHeader = errMeg
+  chkHeader = ErrMeg
 
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
@@ -1760,59 +1760,66 @@ End Function
 ' * Worksheets("Notice").Visible = True
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-Function showNotice(Code As Long, Optional process As String, Optional runEndflg As Boolean)
-  Dim Message As String
+Function showNotice(Code As Long, Optional ErrMeg As String, Optional runEndflg As Boolean)
+  Dim title As String, Message As String, SpeakMeg As String
   Dim runTime As Date
   Dim endLine As Long
 
   On Error GoTo catchError
 
+  Call Library.showDebugForm("Code：" & Code)
+  Call Library.showDebugForm("ErrMeg：" & ErrMeg)
+  Call Library.showDebugForm("runEndflg：" & runEndflg)
 
   runTime = Format(Now(), "yyyy/mm/dd hh:nn:ss")
 
   endLine = sheetNotice.Cells(Rows.count, 1).End(xlUp).Row
-  Message = Application.WorksheetFunction.VLookup(Code, sheetNotice.Range("A2:B" & endLine), 2, False)
-  Message = Replace(Message, "%%", process)
-  If process = "" Then
-    Message = Replace(Message, "<>", process)
-  End If
+  title = Application.WorksheetFunction.VLookup(Code, sheetNotice.Range("A2:B" & endLine), 2, False)
+  SpeakMeg = title
+  Message = ErrMeg
+  
   If runEndflg = True Then
-    Message = Message & vbNewLine & "処理を中止します"
+    SpeakMeg = SpeakMeg & "。処理を中止します"
   End If
 
   If StopTime <> 0 Then
-    Message = Message & vbNewLine & "<処理時間：" & StopTime & ">"
+    Message = Message & vbNewLine & "処理時間：" & StopTime
   End If
-
-  If Message <> "" Then
-    Message = Replace(Message, "<BR>", vbNewLine)
-  End If
-
+  
   If setVal("debugMode") = "speak" Or setVal("debugMode") = "develop" Or setVal("debugMode") = "all" Then
-    Application.Speech.Speak Text:=Message, SpeakAsync:=True, SpeakXML:=True
+    Application.Speech.Speak Text:=SpeakMeg, SpeakAsync:=True, SpeakXML:=True
   End If
-
-  Select Case Code
-    Case 0 To 399
-      Call MsgBox(Message, vbInformation, thisAppName)
-
-    Case 400 To 499
-      Call MsgBox(Message, vbCritical, thisAppName)
-
-    Case 500 To 599
-      Call MsgBox(Message, vbExclamation, thisAppName)
-
-    Case 999
-
-    Case Else
-      Call MsgBox(Message, vbCritical, thisAppName)
-  End Select
   
-  Message = Replace(Message, vbNewLine & "処理を中止します", "処理を中止します")
-  Message = Replace(Message, "<", "")
-  Message = Replace(Message, ">", "")
+  If ErrMeg <> "" Then
+    With Frm_Alert
+      .StartUpPosition = 1
+      .TextBox = Message
+      .TextBox.MultiLine = True
+      .TextBox.MultiLine = True
+      .TextBox.Locked = True
+      
+      .Caption = title
+      .Show
+    End With
+  Else
+    Select Case Code
+      Case 0 To 399
+        Call MsgBox(title, vbInformation, thisAppName)
   
-  Message = "[" & Code & "]" & Message
+      Case 400 To 499
+        Call MsgBox(title, vbCritical, thisAppName)
+  
+      Case 500 To 599
+        Call MsgBox(title, vbExclamation, thisAppName)
+  
+      Case 999
+  
+      Case Else
+        Call MsgBox(title, vbCritical, thisAppName)
+    End Select
+  End If
+  
+  Message = "[" & Code & "]" & title & " " & Message
   Call Library.showDebugForm(Message)
   
   '画面描写制御終了処理
@@ -1888,7 +1895,7 @@ Function outputLog(runTime As Date, Message As String)
   If chkFileExists(logFile) Then
     fileTimestamp = FileDateTime(logFile)
   Else
-      fileTimestamp = DateAdd("d", -1, Date)
+      fileTimestamp = DateAdd(setVal("Cell_logicalName"), -1, Date)
   End If
 
   With CreateObject("ADODB.Stream")
@@ -1968,7 +1975,7 @@ End Function
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-Function importXlsx(filePath As String, targeSheet As String, targeArea As String, dictSheet As Worksheet, Optional passWord As String)
+Function importXlsx(filePath As String, targetSheet As String, targeArea As String, dictSheet As Worksheet, Optional passWord As String)
 
   On Error GoTo catchError
   If passWord <> "" Then
@@ -1977,17 +1984,17 @@ Function importXlsx(filePath As String, targeSheet As String, targeArea As Strin
     Workbooks.Open fileName:=filePath, ReadOnly:=True
   End If
 
-  If Worksheets(targeSheet).Visible = False Then
-    Worksheets(targeSheet).Visible = True
+  If Worksheets(targetSheet).Visible = False Then
+    Worksheets(targetSheet).Visible = True
   End If
-  Sheets(targeSheet).Select
+  Sheets(targetSheet).Select
 
-  ActiveWorkbook.Sheets(targeSheet).Rows.Hidden = False
-  ActiveWorkbook.Sheets(targeSheet).Columns.Hidden = False
+  ActiveWorkbook.Sheets(targetSheet).Rows.Hidden = False
+  ActiveWorkbook.Sheets(targetSheet).Columns.Hidden = False
 
   If ActiveSheet.FilterMode Then ActiveSheet.ShowAllData
 
-  ActiveWorkbook.Sheets(targeSheet).Range(targeArea).Copy
+  ActiveWorkbook.Sheets(targetSheet).Range(targeArea).Copy
   dictSheet.Range("A1").PasteSpecial xlPasteValues
 
   Application.CutCopyMode = False

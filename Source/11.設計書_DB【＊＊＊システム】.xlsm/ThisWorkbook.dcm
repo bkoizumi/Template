@@ -7,11 +7,13 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-'Private Sub Workbook_BeforePrint(Cancel As Boolean)
-'  Range("A1").Select
-'End Sub
-'
-'Private Sub Workbook_SheetSelectionChange(ByVal Sh As Object, ByVal Target As Range)
-'  Application.ScreenUpdating = True
-'End Sub
-'
+'==================================================================================================
+Private Sub Workbook_BeforeClose(Cancel As Boolean)
+  Call Application.OnKey("{F2}")
+End Sub
+
+'==================================================================================================
+Private Sub Workbook_Open()
+  Call Application.OnKey("{F1}", "")
+  Call Application.OnKey("{F2}", "Ctl_Zoom.ZoomIn")
+End Sub

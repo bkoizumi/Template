@@ -367,24 +367,26 @@ End Function
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-'--------------------------------------------------------------------------------------------------
+'==================================================================================================
 Function Optionshow(control As IRibbonControl)
   Call Ctl_Option.showOption
 End Function
 
-'--------------------------------------------------------------------------------------------------
+'==================================================================================================
 Function ClearAll(control As IRibbonControl)
-  '処理開始----------------------------------------------------------------------------------------
+  
+  '処理開始--------------------------------------
+  FuncName = "Ctl_Ribbon.ClearAll"
   Call Library.startScript
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(FuncName & "==========================================")
+  Call Library.showDebugForm(FuncName & "==============================================")
   '----------------------------------------------
   
   Call Ctl_Option.ClearAll
   
-  '処理終了----------------------------------------------------------------------------------------
+  '処理終了--------------------------------------
   Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
@@ -398,7 +400,7 @@ End Function
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-'--------------------------------------------------------------------------------------------------
+'==================================================================================================
 Function addSheet(control As IRibbonControl)
   Call Ctl_Sheet.showAddSheetOption
   Call Ctl_Sheet.addSheet
@@ -412,10 +414,11 @@ End Function
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-'--------------------------------------------------------------------------------------------------
+'==================================================================================================
 Function getTableInfo(control As IRibbonControl)
   
   '処理開始--------------------------------------
+  FuncName = "Ctl_Ribbon.getTableInfo"
   Call Library.startScript
   Call init.Setting
   Call Ctl_ProgressBar.showStart
@@ -453,15 +456,16 @@ Function getTableInfo(control As IRibbonControl)
 End Function
 
 
-'--------------------------------------------------------------------------------------------------
+'==================================================================================================
 Function getColumnInfo(control As IRibbonControl)
   
   '処理開始--------------------------------------
+  FuncName = "Ctl_Ribbon.getColumnInfo"
   Call Library.startScript
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(FuncName & "==========================================")
+  Call Library.showDebugForm(FuncName & "=========================================")
   '----------------------------------------------
 
   Select Case setVal("DBMS")
@@ -491,3 +495,43 @@ Function getColumnInfo(control As IRibbonControl)
   '----------------------------------------------
 End Function
 
+'==================================================================================================
+Function CreateTableInfo(control As IRibbonControl)
+  
+  '処理開始--------------------------------------
+  FuncName = "Ctl_Ribbon.CreateTableInfo"
+  Call Library.startScript
+  Call init.Setting
+  Call Ctl_ProgressBar.showStart
+  runFlg = True
+  Call Library.showDebugForm(FuncName & "=======================================")
+  '----------------------------------------------
+  
+  Select Case setVal("DBMS")
+    Case "MSAccess"
+      Call Ctl_Access.CreateTable
+      
+    Case "MySQL"
+'      Call Ctl_MySQL.dbOpen
+'      Call Ctl_MySQL.CreateTable
+'      Call Ctl_MySQL.dbClose
+      
+    Case "PostgreSQL"
+'      Ctl_Access.getTableInfo
+      
+    Case "SQLServer"
+'      Call Ctl_SQLServer.CreateTable
+      
+    Case Else
+  End Select
+  
+  '処理終了--------------------------------------
+  
+'  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Call Library.showDebugForm("=================================================================")
+  Call Ctl_ProgressBar.showEnd
+  Call Library.endScript
+  Call init.usetting
+  '----------------------------------------------
+  
+End Function

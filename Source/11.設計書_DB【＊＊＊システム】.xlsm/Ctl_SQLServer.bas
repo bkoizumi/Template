@@ -1,7 +1,7 @@
 Attribute VB_Name = "Ctl_SQLServer"
 Dim dbCon       As ADODB.Connection
 Dim DBRecordset As ADODB.Recordset
-Dim QueryString As String
+Dim queryString As String
 
 
 '**************************************************************************************************
@@ -14,16 +14,20 @@ Function dbOpen()
   On Error GoTo catchError
   
   If isDBOpen = True Then
+    Call Library.showDebugForm("Database is already opened")
     Exit Function
   End If
+  Call Library.showDebugForm("ConnectServer：" & ConnectServer)
   
   Set dbCon = New ADODB.Connection
   dbCon.ConnectionString = ConnectServer
   dbCon.Open
   
   isDBOpen = True
+  Call Library.showDebugForm("isDBOpen：" & isDBOpen)
   
   Exit Function
+  
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
   If dbCon Is Nothing Then
@@ -39,24 +43,24 @@ End Function
 Function dbClose()
   On Error GoTo catchError
   
-  dbCon.Close
-  Set DBRecordset = Nothing
-  
-  isDBOpen = False
+  If dbCon Is Nothing Then
+    Call Library.showDebugForm("Database is already closed")
+  Else
+    dbCon.Close
+    isDBOpen = False
+    
+    Set dbCon = Nothing
+    Call Library.showDebugForm("isDBOpen：" & isDBOpen)
+  End If
   
   Exit Function
 
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  If dbCon Is Nothing Then
-  Else
-    dbCon.Close
-    Set DBRecordset = Nothing
-  End If
-  isDBOpen = False
-  
-  Call Library.showNotice(400, Err.Description, True)
+  Call Library.showDebugForm("isDBOpen：" & isDBOpen)
+  Call Library.showNotice(501, Err.Description, True)
 End Function
+
 
 '==================================================================================================
 Function getTableInfo()
@@ -74,10 +78,10 @@ Function getTableInfo()
   
   runFlg = True
 
-  QueryString = "SELECT * FROM sys.objects where type='U' order by name"
+  queryString = "SELECT * FROM sys.objects where type='U' order by name"
   
   Set TblRecordset = New ADODB.Recordset
-  TblRecordset.Open QueryString, dbCon, adOpenKeyset, adLockReadOnly
+  TblRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
 
   Do Until TblRecordset.EOF
     tableName = TblRecordset.Fields("name").Value
@@ -153,11 +157,11 @@ Function getColumnInfo()
   End If
   
   tableName = Range("H5")
-  QueryString = "SELECT * FROM INFORMATION_SCHEMA.Columns where TABLE_NAME='" & tableName & "' order by ORDINAL_POSITION"
-  Call Library.showDebugForm(QueryString)
+  queryString = "SELECT * FROM INFORMATION_SCHEMA.Columns where TABLE_NAME='" & tableName & "' order by ORDINAL_POSITION"
+  Call Library.showDebugForm(queryString)
   
   Set ClmRecordset = New ADODB.Recordset
-  ClmRecordset.Open QueryString, dbCon, adOpenKeyset, adLockReadOnly
+  ClmRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
 
   'テーブル情報
 '  Range("H5") = ClmRecordset.Fields("TABLE_NAME").Value
@@ -206,7 +210,7 @@ Function getColumnInfo()
   'プライマリーキー情報--------------------------------------------------------------------------------
   indexCount = 1
   Set ClmRecordset = New ADODB.Recordset
-  QueryString = "SELECT" & _
+  queryString = "SELECT" & _
                 " TBLS.NAME              AS TABLE_NAME" & _
                 " , KEY_CONST.NAME       AS CONSTRAINT_NAME" & _
                 " , KEY_CONST.TYPE_DESC  AS TYPE_DESC" & _
@@ -224,15 +228,15 @@ Function getColumnInfo()
                 "      ON IDX_COLS.OBJECT_ID = COLS.OBJECT_ID" & _
                 "      AND IDX_COLS.COLUMN_ID = COLS.COLUMN_ID"
   
-  Call Library.showDebugForm(QueryString)
+  Call Library.showDebugForm(queryString)
   
   Set ClmRecordset = New ADODB.Recordset
-  ClmRecordset.Open QueryString, dbCon, adOpenKeyset, adLockReadOnly
+  ClmRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
   Do Until ClmRecordset.EOF
     Range("J" & ClmRecordset.Fields("COLUMN_ID").Value + 8) = indexCount
     
     Range("C" & line) = ClmRecordset.Fields("CONSTRAINT_NAME").Value
-    Range("F" & line) = ClmRecordset.Fields("TYPE_DESC").Value
+    Range(setVal("Cell_dateType") & line) = ClmRecordset.Fields("TYPE_DESC").Value
     
     indexCount = indexCount + 1
     ClmRecordset.MoveNext
@@ -244,7 +248,7 @@ Function getColumnInfo()
   indexCount = 0
   oldID = 1
   Set ClmRecordset = New ADODB.Recordset
-  QueryString = "SELECT distinct" & _
+  queryString = "SELECT distinct" & _
                 "    SYS.INDEXES.INDEX_ID  AS ID" & _
                 "  , SYS.INDEX_COLUMNS.COLUMN_ID AS Index_ID" & _
                 "  , SYS.INDEXES.NAME      AS INDEX_NAME" & _
@@ -264,12 +268,12 @@ Function getColumnInfo()
                 "  SYS.OBJECTS.TYPE = 'U'" & _
                 "  AND SYS.INDEXES.TYPE_DESC != 'HEAP'" & _
                 "  AND SYS.OBJECTS.NAME = '" & tableName & "'"
-  Call Library.showDebugForm(QueryString)
+  Call Library.showDebugForm(queryString)
   
   ColumnNames = Array("", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T")
   
   Set ClmRecordset = New ADODB.Recordset
-  ClmRecordset.Open QueryString, dbCon, adOpenKeyset, adLockReadOnly
+  ClmRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
   Do Until ClmRecordset.EOF
     If oldID = ClmRecordset.Fields("ID").Value Then
       indexCount = indexCount + 1
@@ -277,7 +281,7 @@ Function getColumnInfo()
       indexCount = 1
       Range("C" & ClmRecordset.Fields("ID").Value + 110) = ClmRecordset.Fields("INDEX_NAME").Value
       
-      Range("F" & ClmRecordset.Fields("ID").Value + 110) = ClmRecordset.Fields("INDEX_TYPE").Value
+      Range(setVal("Cell_dateType") & ClmRecordset.Fields("ID").Value + 110) = ClmRecordset.Fields("INDEX_TYPE").Value
       
     End If
     If ClmRecordset.Fields("ID").Value <= 10 Then

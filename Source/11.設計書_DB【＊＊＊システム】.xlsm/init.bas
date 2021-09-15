@@ -5,6 +5,8 @@ Public targetBook As Workbook
 
 
 'ワークシート用変数------------------------------
+Public targetSheet    As Worksheet
+
 Public sheetSetting   As Worksheet
 Public sheetNotice    As Worksheet
 Public sheetDataType  As Worksheet
@@ -22,18 +24,18 @@ Public Const startLine    As Long = 9
 Public isDBOpen           As Boolean
 Public runFlg             As Boolean
 
-Public PrgP_Max As Long
-Public PrgP_Cnt As Long
+Public PrgP_Max           As Long
+Public PrgP_Cnt           As Long
 
 Public FuncName As String
 
 Public accFileName        As String
 Public accFileDir         As String
 Public ArryTypeName(205)  As String
-
+Public oldCellVal         As String
 
 'レジストリ登録用サブキー
-Public Const RegistryKey  As String = "BK_Documents"
+'Public Const RegistryKey  As String = "BK_Documents"
 
 
 '設定値保持
@@ -74,6 +76,7 @@ Function usetting(Optional flg As Boolean = True)
   
   PrgP_Max = 0
   PrgP_Cnt = 0
+  logFile = ""
   
   If flg = True Then
     runFlg = False
@@ -87,7 +90,7 @@ Function Setting(Optional reCheckFlg As Boolean)
 '  On Error GoTo catchError
 '  ThisWorkbook.Save
 
-  If ThisBook Is Nothing Or reCheckFlg = True Then
+  If logFile = "" Or reCheckFlg = True Then
     Call usetting(False)
   Else
     Exit Function
@@ -97,7 +100,10 @@ Function Setting(Optional reCheckFlg As Boolean)
   Set ThisBook = ThisWorkbook
   
   'ワークシート名の設定
-  Set sheetSetting = ThisBook.Worksheets("設定")
+  'Set sheetSetting = ThisBook.Worksheets("設定-MySQL")
+  Set sheetSetting = ThisBook.Worksheets("設定-ACC")
+  
+  
   Set sheetNotice = ThisBook.Worksheets("Notice")
   Set sheetDataType = ThisBook.Worksheets("DataType")
   
@@ -120,8 +126,10 @@ Function Setting(Optional reCheckFlg As Boolean)
     Case "MSAccess"
       accFileName = Library.getFileInfo(setVal("DBServer"), , "fileName")
       accFileDir = Library.getFileInfo(setVal("DBServer"), , "CurrentDir")
-      ConnectServer = "Provider=Microsoft.ACE.OLEDB.16.0;Data Source=" & setVal("DBServer") & ";" & _
-                     "Jet OLEDB:Database Password=" & setVal("passwd") & ";"
+      ConnectServer = "Provider=Microsoft.ACE.OLEDB.16.0;" & _
+                      "Data Source=" & setVal("DBServer") & ";" & _
+                      "Jet OLEDB:Database Password=" & setVal("passwd") & ";"
+                     
       Range("DBName") = accFileName
       
       endLine = sheetSetting.Cells(Rows.count, 12).End(xlUp).Row
@@ -141,7 +149,10 @@ Function Setting(Optional reCheckFlg As Boolean)
       ConnectServer = ""
       
     Case "SQLServer"
-      ConnectServer = "Provider=SQLOLEDB;Data Source=" & setVal("DBServer") & ";Initial Catalog=" & setVal("DBName") & ";Trusted_Connection=Yes"
+      ConnectServer = "Provider=SQLOLEDB;" & _
+                      "Data Source=" & setVal("DBServer") & ";" & _
+                      "Initial Catalog=" & setVal("DBName") & ";" & _
+                      "Trusted_Connection=Yes"
   
   End Select
   

@@ -3,7 +3,7 @@ Option Explicit
 
 Dim dbCon       As ADODB.Connection
 Dim DBRecordset As ADODB.Recordset
-Dim QueryString As String
+Dim queryString As String
 
 
 '**************************************************************************************************
@@ -66,38 +66,45 @@ Function getTableInfo()
   Dim line As Long, endLine As Long
   Dim TblRecordset As ADODB.Recordset
   
-  '処理開始----------------------------------------------------------------------------------------
+  '処理開始--------------------------------------
   'On Error GoTo catchError
   FuncName = "Ctl_MySQL.getTableInfo"
   Call Library.showDebugForm(FuncName & "==========================================")
   '----------------------------------------------
 
   'テーブル情報--------------------------------------------------------------------------------------
-  QueryString = " SELECT" & _
+  queryString = " SELECT" & _
                 "   TABLE_NAME as TableName, TABLE_COMMENT as Comments" & _
                 " from" & _
                 "   information_schema.TABLES" & _
                 " WHERE" & _
                 " TABLE_SCHEMA = DATABASE();"
       
-  Call Library.showDebugForm("QueryString：" & QueryString)
+  Call Library.showDebugForm("QueryString：" & queryString)
   
   Set TblRecordset = New ADODB.Recordset
-  TblRecordset.Open QueryString, dbCon, adOpenKeyset, adLockReadOnly
+  TblRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
   PrgP_Max = TblRecordset.RecordCount
   
   Do Until TblRecordset.EOF
     Call Library.showDebugForm("TableName：" & TblRecordset.Fields("TableName").Value)
     
-    Call Ctl_Common.addSheet(TblRecordset.Fields("TableName").Value)
-    Range("B2") = "マスターテーブル"
-    Range("F5") = TblRecordset.Fields("TableName")
+    If Library.chkSheetExists(TblRecordset.Fields("TableName").Value) = True Then
+      Set targetSheet = ThisWorkbook.Worksheets(TblRecordset.Fields("TableName").Value)
+    Else
+      Call Ctl_Common.addSheet(TblRecordset.Fields("TableName").Value)
+      Set targetSheet = ActiveSheet
+    End If
+    
+    targetSheet.Select
+    targetSheet.Range(setVal("Cell_TableType")) = "マスターテーブル"
+    targetSheet.Range(setVal("Cell_physicalTableName")) = TblRecordset.Fields("TableName")
     
     If TblRecordset.Fields("Comments").Value Like "*<|>*" Then
-      Range("D5") = Split(TblRecordset.Fields("Comments").Value, "<|>")(0)
-      Range("D6") = Replace(Split(TblRecordset.Fields("Comments").Value, "<|>")(1), "<BR>", vbNewLine)
+      targetSheet.Range(setVal("Cell_logicalTableName")) = Split(TblRecordset.Fields("Comments").Value, "<|>")(0)
+      targetSheet.Range(setVal("Cell_tableNote")) = Replace(Split(TblRecordset.Fields("Comments").Value, "<|>")(1), "<BR>", vbNewLine)
     Else
-      Range("D5") = TblRecordset.Fields("Comments")
+      targetSheet.Range(setVal("Cell_tableNote")) = TblRecordset.Fields("Comments")
     End If
     
     PrgP_Cnt = TblRecordset.AbsolutePosition
@@ -109,10 +116,10 @@ Function getTableInfo()
     
   Loop
   Set TblRecordset = Nothing
+  Set targetSheet = Nothing
 
 
-
-  '処理終了----------------------------------------------------------------------------------------
+  '処理終了--------------------------------------
   Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   '----------------------------------------------
@@ -134,25 +141,28 @@ Function getColumnInfo()
   Dim ColCnt As Long
   Dim searchColCell As Range
   Dim IndexName As String, oldIndexName As String, IndexColName As String
-  '処理開始----------------------------------------------------------------------------------------
+  '処理開始--------------------------------------
   'On Error GoTo catchError
   FuncName = "Ctl_MySQL.getColumnInfo"
   If PrgP_Max = 0 Then
     PrgP_Max = 2
     PrgP_Cnt = 1
   End If
-  Call Library.showDebugForm(FuncName & "==========================================")
+  Call Library.showDebugForm(FuncName & "=========================================")
   Call Library.showDebugForm("runFlg：" & runFlg)
   Call Ctl_Common.ClearData
   '----------------------------------------------
+  If targetSheet Is Nothing Then
+    Set targetSheet = ActiveSheet
+  End If
+  targetSheet.Select
   
-  tableName = Range("F5")
-  Worksheets(tableName).Select
+  tableName = targetSheet.Range(setVal("Cell_physicalTableName"))
   line = startLine
   ColCnt = 1
   
   'カラム情報--------------------------------------------------------------------------------------
-  QueryString = " SELECT " & _
+  queryString = " SELECT " & _
                 "   COLUMN_NAME                            AS ColumName " & _
                 "   , DATA_TYPE                            AS DataType " & _
                 "   , IFNULL(CHARACTER_MAXIMUM_LENGTH, '') AS Length    " & _
@@ -168,32 +178,36 @@ Function getColumnInfo()
                 " ORDER BY" & _
                 "   ordinal_position;"
       
-  Call Library.showDebugForm("QueryString：" & QueryString)
+  Call Library.showDebugForm("QueryString：" & queryString)
   
   Set ClmRecordset = New ADODB.Recordset
-  ClmRecordset.Open QueryString, dbCon, adOpenKeyset, adLockReadOnly
+  ClmRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
   
   
   Do Until ClmRecordset.EOF
-    Range("B" & line) = ColCnt
+    targetSheet.Range("C" & line) = ColCnt
     If ClmRecordset.Fields("Comments").Value Like "*<|>*" Then
-      Range("C" & line) = Split(ClmRecordset.Fields("Comments").Value, "<|>")(0)
-      Range("U" & line) = Replace(Split(ClmRecordset.Fields("Comments").Value, "<|>")(1), "<BR>", vbNewLine)
+      targetSheet.Range(setVal("Cell_logicalName") & line) = Split(ClmRecordset.Fields("Comments").Value, "<|>")(0)
+      targetSheet.Range(setVal("Cell_Note") & line) = Replace(Split(ClmRecordset.Fields("Comments").Value, "<|>")(1), "<BR>", vbNewLine)
     Else
-      Range("C" & line) = ClmRecordset.Fields("Comments").Value
+      targetSheet.Range(setVal("Cell_logicalName") & line) = ClmRecordset.Fields("Comments").Value
     End If
-    Range("D" & line) = ClmRecordset.Fields("ColumName").Value
-    Range("E" & line) = ClmRecordset.Fields("DataType").Value
-    Range("F" & line) = ClmRecordset.Fields("Length").Value
-    If ClmRecordset.Fields("PrimaryKey").Value = "PRI" Then Range("H" & line) = 1
-    If ClmRecordset.Fields("Nullable").Value = "NO" Then Range("S" & line) = 1
-    Range("T" & line) = ClmRecordset.Fields("ColumnDefault").Value
+    targetSheet.Range(setVal("Cell_physicalName") & line) = ClmRecordset.Fields("ColumName").Value
+    targetSheet.Range(setVal("Cell_dateType") & line) = ClmRecordset.Fields("DataType").Value
+    targetSheet.Range(setVal("Cell_digits") & line) = ClmRecordset.Fields("Length").Value
+    If ClmRecordset.Fields("PrimaryKey").Value = "PRI" Then
+      targetSheet.Range(setVal("Cell_PK") & line) = 1
+    End If
+    If ClmRecordset.Fields("Nullable").Value = "NO" Then
+      targetSheet.Range(setVal("Cell_Null") & line) = 1
+    End If
+    targetSheet.Range(setVal("Cell_Default") & line) = ClmRecordset.Fields("ColumnDefault").Value
     
     
     '行の高さ調整
-    LFCount = UBound(Split(Range("U" & line).Value, vbNewLine)) + 1
+    LFCount = UBound(Split(targetSheet.Range(setVal("Cell_Note") & line).Value, vbNewLine)) + 1
     If LFCount > 0 Then
-      Rows(line & ":" & line).RowHeight = 18 * LFCount
+      targetSheet.Rows(line & ":" & line).RowHeight = 18 * LFCount
     End If
     
     
@@ -212,11 +226,11 @@ Function getColumnInfo()
   End If
   
   IndexLine = Ctl_Common.chkIndexRow
-  QueryString = "SHOW INDEX FROM " & tableName & ";"
-  Call Library.showDebugForm("QueryString：" & QueryString)
+  queryString = "SHOW INDEX FROM " & tableName & ";"
+  Call Library.showDebugForm("QueryString：" & queryString)
   
   Set ClmRecordset = New ADODB.Recordset
-  ClmRecordset.Open QueryString, dbCon, adOpenKeyset, adLockReadOnly
+  ClmRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
   
   line = IndexLine
   ColCnt = -1
@@ -229,30 +243,30 @@ Function getColumnInfo()
     End If
     
     If IndexName = "PRIMARY" Then
-      Range("B" & line) = "PK"
+      targetSheet.Range("C" & line) = "PK"
     Else
-      Range("B" & line) = ColCnt
+      targetSheet.Range("C" & line) = ColCnt
     End If
     
-    Range("C" & line) = IndexName
-    Range("E" & line) = ClmRecordset.Fields("Index_type").Value
-    If Range("F" & line) = "" Then
-      Range("F" & line) = ClmRecordset.Fields("Column_name").Value
+    targetSheet.Range("D" & line) = IndexName
+    targetSheet.Range("F" & line) = ClmRecordset.Fields("Index_type").Value
+    If targetSheet.Range("G" & line) = "" Then
+      targetSheet.Range("G" & line) = ClmRecordset.Fields("Column_name").Value
     Else
-      Range("F" & line) = Range("F" & line) & ", " & ClmRecordset.Fields("Column_name").Value
+      targetSheet.Range("G" & line) = targetSheet.Range("G" & line) & ", " & ClmRecordset.Fields("Column_name").Value
     End If
     
     If ClmRecordset.Fields("Non_unique").Value = 0 Then
-      Range("D" & line) = "UNIQUE"
+      targetSheet.Range("E" & line) = "UNIQUE"
     Else
-      Range("D" & line) = "NONUNIQUE"
+      targetSheet.Range("E" & line) = "NONUNIQUE"
     End If
     
-    Set searchColCell = Columns("D:D").Find(What:=ClmRecordset.Fields("Column_name").Value)
+    Set searchColCell = Columns("E:E").Find(What:=ClmRecordset.Fields("Column_name").Value)
     If ColCnt <= 10 Then
-      Cells(searchColCell.Row, 8 + ColCnt) = ClmRecordset.Fields("Seq_in_index").Value
+      Cells(searchColCell.Row, 9 + ColCnt) = ClmRecordset.Fields("Seq_in_index").Value
       
-      IndexColName = Library.getColumnName(8 + ColCnt)
+      IndexColName = Library.getColumnName(9 + ColCnt)
       Columns(IndexColName & ":" & IndexColName).EntireColumn.Hidden = False
     End If
     
@@ -266,7 +280,7 @@ Function getColumnInfo()
 
 
 
-  '処理終了----------------------------------------------------------------------------------------
+  '処理終了--------------------------------------
   Application.Goto Reference:=Range("A41"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   '----------------------------------------------

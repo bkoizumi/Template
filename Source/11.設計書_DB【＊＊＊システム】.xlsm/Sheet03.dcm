@@ -1,0 +1,19 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "Sheet03"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = True
+'**************************************************************************************************
+' * 右クリックメニュー
+' *
+' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
+'**************************************************************************************************
+Private Sub Worksheet_BeforeRightClick(ByVal Target As Range, Cancel As Boolean)
+  
+  Call Ctl_Option.右クリックメニュー(Target, Cancel)
+  
+End Sub

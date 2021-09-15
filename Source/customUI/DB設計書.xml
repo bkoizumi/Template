@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui"  onLoad="Ctl_Ribbon.onLoad">
+<ribbon startFromScratch="false">
+<tabs>
+  <tab id="DBTab" label="DB設計書" insertBeforeMso="TabHome">
+    <group id="設定" label="設定">
+	    <button id="Option"     label="Option"      imageMso="CurrentViewSettings" screentip="オプション設定" supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.Option" />
+      <button id="データ削除" label="データ削除"  imageMso="ClearAll" screentip="データ削除" supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.ClearAll" />
+      <dynamicMenu  id="SheetList"      label="シート一覧"  imageMso="HeaderFooterSheetNameInsert" size="normal" getContent="Ctl_Ribbon.getSheetsList" />
+    </group >
+
+    <group id="共通" label="共通">
+      <button id="シート追加"     label="シート追加"    imageMso="SheetInsert" screentip="シート追加"     supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.addSheet" />
+      <button id="TBLリスト更新"  label="TBLリスト更新" imageMso="CurrentViewSettings" screentip="TBLリスト更新"  supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.makeTblList" />
+    </group >
+
+    <group id="DB操作" label="DB操作">
+      <menu id="M_DB取得" label="情報取得&#xD;&#xA;" size="large" itemSize="large" imageMso="DatabaseModelingReverse">
+        <menuSeparator id="MS_DB取得" title="DB取得" />
+        <button id="テーブル情報取得" label="テーブル情報取得"  imageMso="DatabaseModelingReverse"  onAction="Ctl_Ribbon.getTableInfo"      description="テーブル情報取得 &#13;" />
+        <button id="カラム情報取得"   label="カラム情報取得"    imageMso="DatabaseModelingReverse"  onAction="Ctl_Ribbon.getColumnInfo"  description="カラム情報取得 &#13;" />
+      </menu>
+
+      <button id="テーブル情報反映" label="情報反映&#xD;&#xA;" size="large" imageMso="DatabaseSqlServer"  onAction="Ctl_Ribbon.CreateTableInfo"   description="テーブル情報反映 &#13;" />
+
+      <menu id="M_DDL生成" label="DDL生成&#xD;&#xA;" size="large" itemSize="large" imageMso="SqlSpecificMenu2">
+        <menuSeparator id="MS_DDL生成" title="DDL生成" />
+        <button id="全DDL生成" label="全DDL生成"  imageMso="SqlSpecificMenu2"  onAction="Ctl_Ribbon.makeAllDDL" description="スタイルを削除します &#13;" />
+        <button id="DDL生成"   label="DDL生成"    imageMso="SqlSpecificMenu2"  onAction="Ctl_Ribbon.makeDDL"    description="名前定義を削除します &#13;" />
+      </menu>
+
+    </group >
+
+
+
+
+
+      <group id="Group2" label="標準機能">
+        <control idMso="PasteValues"               visible="true" label="値貼付" />               <!--値の貼り付け-->
+        <control idMso="WindowNew"                 visible="true" label="新ウインドウ"/>          <!--新しいウインドウ-->
+        <menu id="M_AppointmentColorDialog" label="スタイル"  imageMso="AppointmentColorDialog" >
+          <control idMso="CellStylesGallery"       visible="true" />                              <!--セルのスタイル-->
+          <control idMso="FormatAsTableGallery"    visible="true" />                              <!--テーブルのスタイル-->
+        </menu>
+        <control idMso="WindowsArrangeAll"         visible="true" label="整列"/>                  <!--整列-->
+        <control idMso="ViewFreezePanesGallery"    visible="true" label="枠固定" />               <!--ウインドウ枠の固定-->
+        <control idMso="ViewGridlinesToggleExcel"  visible="true" label="枠線表示" />             <!--枠線の表示-->
+
+        <menu id="m_GroupInsertText" label="テキスト"  imageMso="TextBoxInsert" >
+          <control idMso="TextBoxInsertHorizontal"  visible="true" />                              <!--セルのスタイル-->
+          <control idMso="TextBoxInsertVertical"    visible="true" />                              <!--テーブルのスタイル-->
+        </menu>
+
+
+        <control idMso="PictureInsertFromFile"     visible="true" label="図挿入" />               <!--図をファイルから挿入-->
+        <control idMso="ShapesInsertGallery"       visible="true" label="図形" />                 <!--図形-->
+        <control idMso="MergeCellsAcross"          visible="true" label="横結合" />               <!--横方向に結合-->
+        <control idMso="ClearAll"                  visible="true" label="全クリア" />             <!--すべてクリア-->
+        <button id="MergeCenter" imageMso="MergeCenter" label="中央揃え" onAction="Ladex.xlam!Ctl_Ribbon.setCenter" />
+        <menu id="MyMenu" label="メニュー"  imageMso="BlogHomePage" >
+          <control idMso="FileSaveAsOtherFormats"  visible="true" label="別名保存" />             <!--他の形式で保存-->
+          <control idMso="FilePrintPreview"        visible="true" />                              <!--印刷プレビュー-->
+          <control idMso="FileSaveAsPdfOrXps"      visible="true" />                              <!--PDF生成-->
+          <control idMso="FileOpen"                visible="true" />                              <!--開く-->
+          <control idMso="FilePrepareMenu"         visible="true" />                              <!--配布準備-->
+          <control idMso="ClearContents"           visible="true" />                              <!--数式と値のクリア-->
+          <control idMso="RefreshAllMenu"          visible="true" />                              <!--すべて更新-->
+          <control idMso="DataValidation"          visible="true" />                              <!--入力規則-->
+          <control idMso="NameManager"             visible="true" />                              <!--名前の管理-->
+        </menu>
+    </group>
+    <group idMso="GroupFont"                       visible="true"/>                               <!--フォント-->
+    <!--<group idMso="GroupAlignmentExcel"             visible="true"/>                               配置-->
+    <group id="Group_GroupAlignmentExcel" label="配置">
+      <box id="bAlignment01"  boxStyle="horizontal">
+        <control idMso="IndentDecreaseExcel"  showLabel="false" visible="true" />
+        <control idMso="IndentIncreaseExcel"  showLabel="false" visible="true" />
+        <control idMso="OrientationMenu"      showLabel="false" visible="true" />
+      </box>
+      <box id="bAlignment02"  boxStyle="horizontal">
+        <control idMso="AlignTopExcel"    showLabel="false" visible="true" />
+        <control idMso="AlignMiddleExcel" showLabel="false" visible="true" />
+        <control idMso="AlignBottomExcel" showLabel="false" visible="true" />
+      </box>
+      <box id="bAlignment03"  boxStyle="horizontal">
+        <control idMso="AlignLeft"    showLabel="false" visible="true" />
+        <control idMso="AlignCenter"  showLabel="false" visible="true" />
+        <control idMso="AlignRight"   showLabel="false" visible="true" />
+      </box>
+      <separator id="sbAlignment01" />
+      <box id="bAlignment04"  boxStyle="vertical">
+        <control idMso="WrapText"                   label="折り返し" visible="true" />
+        <menu id="M_MergeCenter" label="セルの結合"  imageMso="MergeCenter" >
+          <control idMso="MergeCenter"  showLabel="true" visible="true" />
+          <control idMso="MergeCells"   showLabel="true" visible="true" />
+          <control idMso="UnmergeCells" showLabel="true" visible="true" />
+        </menu>
+
+        <control idMso="ConditionalFormattingMenu"  label="条件書式" visible="true" />
+      </box>
+    </group>
+
+    <group id="Group_GroupSortFilter" label="並べ替えとフィルタ">
+      <box id="bSortFilter01"  boxStyle="vertical">
+        <control idMso="SortAscendingExcel"          visible="true" />
+        <control idMso="SortDescendingExcel"         visible="true" />
+        <control idMso="SortDialog"       showLabel="false"     visible="true" />
+      </box>
+      <box id="bSortFilter02"  boxStyle="vertical">
+        <control idMso="SortClear"        showLabel="false"     visible="true" />
+        <control idMso="RemoveDuplicates" showLabel="false"     visible="true" />
+      </box>
+      <control idMso="Filter"     size="large"      showLabel="false"     visible="true" />
+    </group>
+
+
+
+    <!-- <group idMso="GroupOutline" visible="true"/>                               アウトライン -->
+    <group id="Group_GroupOutline" label="アウトライン">
+      <control idMso="OutlineGroupMenu"   size="normal" visible="true" />
+      <control idMso="OutlineUngroupMenu" size="normal" visible="true" />
+      <control idMso="OutlineSubtotals"   size="normal" visible="true" />
+
+      <control idMso="OutlineShowDetail"  size="normal" visible="true" />
+      <control idMso="OutlineHideDetail"  size="normal" visible="true" />
+      <control idMso="OutlineSettings"    size="normal" visible="true" />
+
+    </group>
+
+
+
+  </tab>
+</tabs>
+</ribbon>
+<backstage>
+  <tab id="tab1" label="DB設計" visible="true">
+    <firstColumn>
+      <group id="grp1" label="更新情報" visible="true">
+        <topItems>
+            <labelControl id="v1000" label="Ver.1.00.00　新規作成" />
+        </topItems>
+      </group>
+    </firstColumn>
+
+    <secondColumn>
+      <group id="grp2" label="著作権について" visible="true">
+        <topItems>
+          <labelControl id="cp0100" label="免責事項" />
+          <labelControl id="cp0101" label="　・当コンテンツの利用に際し、いかなるトラブルが発生しても、作者は一切の責任を負いません。" />
+          <labelControl id="cp0102" label="　・当コンテンツは予告無しに変更・削除されることがあります。" />
+          <labelControl id="cp0103" label="　・このライセンスは予告なく改定される場合があります。" />
+          <labelControl id="cp0900" label="　" />
+          <labelControl id="cp0901" label="　" />
+          <labelControl id="cp0902" label="　" />
+          <labelControl id="cp0903" label="　" />
+          <labelControl id="cp0904" label="　" />
+          <labelControl id="cp0905" label="　" />
+          <labelControl id="cp0906" label="　" />
+          <labelControl id="cp0907" label="　" />
+          <labelControl id="cp0908" label="　" />
+          <labelControl id="cp0909" label="　" />
+          <labelControl id="cp0910" label="　" />
+          <labelControl id="cp0911" label="Copyright (C) 2019 B.Koizumi All Rights Reserved." />
+        </topItems>
+      </group>
+    </secondColumn>
+
+  </tab>
+</backstage>
+</customUI>

@@ -957,7 +957,7 @@ End Function
 '***************************************************************************************************************************************************
 Function DataBase_GetTableList()
 
-  Dim QueryString As String
+  Dim queryString As String
 
   Dim tableName As String
   Dim Comment As Variant
@@ -983,41 +983,41 @@ Function DataBase_GetTableList()
 '      PostgreSQL_MakeDDL
 
     Case "MySQL"
-      QueryString = "SELECT TABLE_NAME as TableName, TABLE_COMMENT as Comments,'' as  TableSpaceName from information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE();"
+      queryString = "SELECT TABLE_NAME as TableName, TABLE_COMMENT as Comments,'' as  TableSpaceName from information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE();"
 
     Case "Oracle"
       If DBTableSpace = "" Then
-        QueryString = "select" & LineBreakCode
-        QueryString = QueryString & "  UT.table_name TableName," & LineBreakCode
-        QueryString = QueryString & "  UTC.Comments," & LineBreakCode
-        QueryString = QueryString & "  UT.tablespace_name TableSpaceName" & LineBreakCode
-        QueryString = QueryString & "from USER_TABLES UT left join USER_TAB_COMMENTS UTC on UT.table_name =UTC.table_name" & LineBreakCode
-        QueryString = QueryString & "where UT.tablespace_name is not null " & LineBreakCode
+        queryString = "select" & LineBreakCode
+        queryString = queryString & "  UT.table_name TableName," & LineBreakCode
+        queryString = queryString & "  UTC.Comments," & LineBreakCode
+        queryString = queryString & "  UT.tablespace_name TableSpaceName" & LineBreakCode
+        queryString = queryString & "from USER_TABLES UT left join USER_TAB_COMMENTS UTC on UT.table_name =UTC.table_name" & LineBreakCode
+        queryString = queryString & "where UT.tablespace_name is not null " & LineBreakCode
       Else
-        QueryString = "select" & LineBreakCode
-        QueryString = QueryString & "  UT.table_name TableName," & LineBreakCode
-        QueryString = QueryString & "  UTC.Comments," & LineBreakCode
-        QueryString = QueryString & "  UT.tablespace_name TableSpaceName" & LineBreakCode
-        QueryString = QueryString & "from USER_TABLES UT left join USER_TAB_COMMENTS UTC on UT.table_name =UTC.table_name" & LineBreakCode
-        QueryString = QueryString & "where UT.tablespace_name='" & DBTableSpace & "';" & LineBreakCode
+        queryString = "select" & LineBreakCode
+        queryString = queryString & "  UT.table_name TableName," & LineBreakCode
+        queryString = queryString & "  UTC.Comments," & LineBreakCode
+        queryString = queryString & "  UT.tablespace_name TableSpaceName" & LineBreakCode
+        queryString = queryString & "from USER_TABLES UT left join USER_TAB_COMMENTS UTC on UT.table_name =UTC.table_name" & LineBreakCode
+        queryString = queryString & "where UT.tablespace_name='" & DBTableSpace & "';" & LineBreakCode
       End If
 
-      QueryString = QueryString & " order by UT.table_name" & LineBreakCode
+      queryString = queryString & " order by UT.table_name" & LineBreakCode
 
     Case "SQLServer"
-      QueryString = "select table_name TableName,'' Comments from USER_TABLES;"
+      queryString = "select table_name TableName,'' Comments from USER_TABLES;"
   End Select
 
   '個別にテーブル一覧を取得したいとき用
   If LocalQueryString <> "" Then
-    QueryString = LocalQueryString
+    queryString = LocalQueryString
   End If
 
   Set DBRecordset = New ADODB.Recordset
-  DBRecordset.Open QueryString, dbCon, adOpenKeyset, adLockReadOnly
+  DBRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
 
   Sheets("TBLリスト").Range("W2").Value = "テーブル情報取得SQL"
-  Sheets("TBLリスト").Range("X2").Value = QueryString
+  Sheets("TBLリスト").Range("X2").Value = queryString
 
   Do Until DBRecordset.EOF
 
@@ -1145,7 +1145,7 @@ End Function
 '***************************************************************************************************************************************************
 Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
 
-  Dim QueryString As String
+  Dim queryString As String
   Dim SelectString As String
   Dim RunQueryString As String
 
@@ -1199,28 +1199,28 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
 '      PostgreSQL_MakeDDL
 
     Case "MySQL"
-      QueryString = "SELECT TABLE_NAME as TableName, TABLE_COMMENT as Comments,'' as  TableSpaceName from "
-      QueryString = QueryString & " information_schema.TABLES WHERE TABLE_NAME='" & tableName & "'"
+      queryString = "SELECT TABLE_NAME as TableName, TABLE_COMMENT as Comments,'' as  TableSpaceName from "
+      queryString = queryString & " information_schema.TABLES WHERE TABLE_NAME='" & tableName & "'"
 
     Case "Oracle"
-        QueryString = "select" & LineBreakCode
-        QueryString = QueryString & "  UT.table_name TableName," & LineBreakCode
-        QueryString = QueryString & "  UTC.Comments," & LineBreakCode
-        QueryString = QueryString & "  UT.tablespace_name TableSpaceName" & LineBreakCode
-        QueryString = QueryString & "from USER_TABLES UT left join USER_TAB_COMMENTS UTC on UT.table_name =UTC.table_name" & LineBreakCode
-        QueryString = QueryString & "where UT.table_name='" & tableName & "'" & LineBreakCode
+        queryString = "select" & LineBreakCode
+        queryString = queryString & "  UT.table_name TableName," & LineBreakCode
+        queryString = queryString & "  UTC.Comments," & LineBreakCode
+        queryString = queryString & "  UT.tablespace_name TableSpaceName" & LineBreakCode
+        queryString = queryString & "from USER_TABLES UT left join USER_TAB_COMMENTS UTC on UT.table_name =UTC.table_name" & LineBreakCode
+        queryString = queryString & "where UT.table_name='" & tableName & "'" & LineBreakCode
 
     Case "SQLServer"
-      QueryString = "select table_name TableName,'' Comments,'' as  TableSpaceName from USER_TABLES;"
+      queryString = "select table_name TableName,'' Comments,'' as  TableSpaceName from USER_TABLES;"
   End Select
 
   'テーブル情報取得
   Range("W2").Value = "テーブル情報取得SQL"
-  Range("X2").Value = QueryString
+  Range("X2").Value = queryString
   Range("X2").WrapText = False
 
   Set DBRecordset = New ADODB.Recordset
-  DBRecordset.Open QueryString, DBConGetColumn, adOpenKeyset, adLockReadOnly
+  DBRecordset.Open queryString, DBConGetColumn, adOpenKeyset, adLockReadOnly
 
   Do Until DBRecordset.EOF
 
@@ -1262,7 +1262,7 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
 
   'SQL文 -------------------------------------------------------------------------------------------------------------------------------------
   SelectString = ""
-  QueryString = ""
+  queryString = ""
   Select Case DBMS
     Case "PostgreSQL"
 '      PostgreSQL_MakeDDL
@@ -1277,13 +1277,13 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
       SelectString = SelectString & "    , IS_NULLABLE                          AS Nullable " & LineBreakCode
       SelectString = SelectString & "    , COLUMN_DEFAULT                       AS ColumnDefault " & LineBreakCode
       SelectString = SelectString & "    , COLUMN_COMMENT                       AS Comments " & LineBreakCode
-      QueryString = QueryString & "FROM"
-      QueryString = QueryString & " information_schema.Columns c "
-      QueryString = QueryString & "WHERE"
-      QueryString = QueryString & "     c.table_schema = '" & DBName & "' "
-      QueryString = QueryString & " AND c.table_name   = '" & tableName & "' "
-      QueryString = QueryString & "ORDER BY"
-      QueryString = QueryString & " ordinal_position;"
+      queryString = queryString & "FROM"
+      queryString = queryString & " information_schema.Columns c "
+      queryString = queryString & "WHERE"
+      queryString = queryString & "     c.table_schema = '" & DBName & "' "
+      queryString = queryString & " AND c.table_name   = '" & tableName & "' "
+      queryString = queryString & "ORDER BY"
+      queryString = queryString & " ordinal_position;"
 
     Case "Oracle"
       SelectString = "select " & LineBreakCode
@@ -1298,14 +1298,14 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
       SelectString = SelectString & "    end                                            as Nullable," & LineBreakCode
       SelectString = SelectString & "    UCC.COMMENTS                                   as Comments," & LineBreakCode
       SelectString = SelectString & "    UTC.data_default                               as ColumnDefault" & LineBreakCode
-      QueryString = QueryString & "  FROM" & LineBreakCode
-      QueryString = QueryString & "    USER_TAB_COLUMNS UTC left join USER_COL_COMMENTS UCC on UTC.table_name = UCC.table_name and UTC.column_name = UCC.column_name" & LineBreakCode
-      QueryString = QueryString & "    left join USER_CONS_COLUMNS UCCPkey on UTC.table_name = UCCPkey.table_name and UTC.column_name = UCCPkey.column_name and UCCPkey.position is not null" & LineBreakCode
-      QueryString = QueryString & "  WHERE UTC.table_name='" & tableName & "'" & LineBreakCode
-      QueryString = QueryString & "  ORDER BY UTC.column_id" & LineBreakCode
+      queryString = queryString & "  FROM" & LineBreakCode
+      queryString = queryString & "    USER_TAB_COLUMNS UTC left join USER_COL_COMMENTS UCC on UTC.table_name = UCC.table_name and UTC.column_name = UCC.column_name" & LineBreakCode
+      queryString = queryString & "    left join USER_CONS_COLUMNS UCCPkey on UTC.table_name = UCCPkey.table_name and UTC.column_name = UCCPkey.column_name and UCCPkey.position is not null" & LineBreakCode
+      queryString = queryString & "  WHERE UTC.table_name='" & tableName & "'" & LineBreakCode
+      queryString = queryString & "  ORDER BY UTC.column_id" & LineBreakCode
 
     Case "SQLServer"
-      QueryString = "select table_name TableName,'' Comments from USER_TABLES;"
+      queryString = "select table_name TableName,'' Comments from USER_TABLES;"
   End Select
 
   ProgressBar_ProgShowCount tableName & " 接続中・・・", 75, 100, "DBに接続"
@@ -1313,7 +1313,7 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
   Set DBRecordset = New ADODB.Recordset
 
   'カラム数取得
-  RunQueryString = "select count(*) as count " & LineBreakCode & QueryString
+  RunQueryString = "select count(*) as count " & LineBreakCode & queryString
 
   Set DBRecordset = New ADODB.Recordset
   DBRecordset.Open RunQueryString, DBConGetColumn, adOpenKeyset, adLockReadOnly
@@ -1328,7 +1328,7 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
   ProgressBar_ProgShowCount tableName & " 接続中・・・", 90, 100, tableName & " カラム数取得"
 
   'カラム情報取得
-  RunQueryString = SelectString & QueryString
+  RunQueryString = SelectString & queryString
   Range("W3").Value = "カラム情報取得SQL"
   Range("X3").Value = RunQueryString
   Range("X3").WrapText = False
@@ -1558,41 +1558,41 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
 
   Select Case DBMS
     Case "PostgreSQL"
-      QueryString = "EXEC sp_MShelpindex " & tableName
+      queryString = "EXEC sp_MShelpindex " & tableName
 
     Case "MySQL"
-      QueryString = "SHOW INDEX FROM " & tableName & ";"
+      queryString = "SHOW INDEX FROM " & tableName & ";"
 
     Case "Oracle"
-      QueryString = "SELECT" & LineBreakCode
-      QueryString = QueryString + "UIC.index_name IndexName" & LineBreakCode
-      QueryString = QueryString + "  , UIC.column_name ColumnName" & LineBreakCode
-      QueryString = QueryString + "  , UIC.Column_Position ColumnPosition" & LineBreakCode
-      QueryString = QueryString + "  , UI.tablespace_name  TableSpace" & LineBreakCode
-      QueryString = QueryString + "  , case" & LineBreakCode
-      QueryString = QueryString + "      when UI.uniqueness ='UNIQUE' then 0" & LineBreakCode
-      QueryString = QueryString + "      when UI.uniqueness ='NONUNIQUE' then 1" & LineBreakCode
-      QueryString = QueryString + "    end as Uniqueness" & LineBreakCode
-      QueryString = QueryString + "FROM" & LineBreakCode
-      QueryString = QueryString + "  USER_IND_COLUMNS  UIC left join USER_INDEXES UI on UIC.table_name=UI.table_name and UIC.index_name=UI.index_name" & LineBreakCode
-      QueryString = QueryString + "where" & LineBreakCode
-      QueryString = QueryString + "  UIC.table_name = '" & tableName & "'" & LineBreakCode
-      QueryString = QueryString + "Order by" & LineBreakCode
-      QueryString = QueryString + "  uniqueness ASC" & LineBreakCode
-      QueryString = QueryString + "  , UIC.index_name ASC" & LineBreakCode
-      QueryString = QueryString + "  , UIC.column_position ASC"
+      queryString = "SELECT" & LineBreakCode
+      queryString = queryString + "UIC.index_name IndexName" & LineBreakCode
+      queryString = queryString + "  , UIC.column_name ColumnName" & LineBreakCode
+      queryString = queryString + "  , UIC.Column_Position ColumnPosition" & LineBreakCode
+      queryString = queryString + "  , UI.tablespace_name  TableSpace" & LineBreakCode
+      queryString = queryString + "  , case" & LineBreakCode
+      queryString = queryString + "      when UI.uniqueness ='UNIQUE' then 0" & LineBreakCode
+      queryString = queryString + "      when UI.uniqueness ='NONUNIQUE' then 1" & LineBreakCode
+      queryString = queryString + "    end as Uniqueness" & LineBreakCode
+      queryString = queryString + "FROM" & LineBreakCode
+      queryString = queryString + "  USER_IND_COLUMNS  UIC left join USER_INDEXES UI on UIC.table_name=UI.table_name and UIC.index_name=UI.index_name" & LineBreakCode
+      queryString = queryString + "where" & LineBreakCode
+      queryString = queryString + "  UIC.table_name = '" & tableName & "'" & LineBreakCode
+      queryString = queryString + "Order by" & LineBreakCode
+      queryString = queryString + "  uniqueness ASC" & LineBreakCode
+      queryString = queryString + "  , UIC.index_name ASC" & LineBreakCode
+      queryString = queryString + "  , UIC.column_position ASC"
 
     Case "SQLServer"
-      QueryString = "EXEC sp_MShelpindex " & tableName
+      queryString = "EXEC sp_MShelpindex " & tableName
   End Select
 
   'インデックス情報取得
   Range("W5").Value = "インデックス情報取得SQL"
-  Range("X5").Value = QueryString
+  Range("X5").Value = queryString
   Range("X5").WrapText = False
 
   Set DBRecordset = New ADODB.Recordset
-  DBRecordset.Open QueryString, DBConGetColumn, adOpenKeyset, adLockReadOnly
+  DBRecordset.Open queryString, DBConGetColumn, adOpenKeyset, adLockReadOnly
 
   Do Until DBRecordset.EOF
 
@@ -1859,7 +1859,7 @@ Function DataBase_MakeTableList()
   Next
   Worksheets("変更履歴").Select
   endLine = Cells(Rows.count, 4).End(xlUp).Row
-  Range("更新者") = Range("D" & endLine)
+  Range("更新者") = Range(setVal("Cell_logicalName") & endLine)
 
   endLine = Cells(Rows.count, 3).End(xlUp).Row
   Range("更新日") = Range("C" & endLine)
@@ -2089,34 +2089,34 @@ Function DataBase_Connection()
       PostgreSQL_MakeDDL
 
     Case "MySQL"
-      QueryString = "SELECT TABLE_NAME as TableName, TABLE_COMMENT as Comments,'' as  TableSpaceName from information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE();"
+      queryString = "SELECT TABLE_NAME as TableName, TABLE_COMMENT as Comments,'' as  TableSpaceName from information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE();"
 
     Case "Oracle"
       If DBTableSpace = "" Then
-        QueryString = "select" & LineBreakCode
-        QueryString = QueryString & "  UT.table_name TableName," & LineBreakCode
-        QueryString = QueryString & "  UTC.Comments," & LineBreakCode
-        QueryString = QueryString & "  UT.tablespace_name TableSpaceName" & LineBreakCode
-        QueryString = QueryString & "from USER_TABLES UT left join USER_TAB_COMMENTS UTC on UT.table_name =UTC.table_name" & LineBreakCode
-        QueryString = QueryString & "where UT.tablespace_name is not null " & LineBreakCode
+        queryString = "select" & LineBreakCode
+        queryString = queryString & "  UT.table_name TableName," & LineBreakCode
+        queryString = queryString & "  UTC.Comments," & LineBreakCode
+        queryString = queryString & "  UT.tablespace_name TableSpaceName" & LineBreakCode
+        queryString = queryString & "from USER_TABLES UT left join USER_TAB_COMMENTS UTC on UT.table_name =UTC.table_name" & LineBreakCode
+        queryString = queryString & "where UT.tablespace_name is not null " & LineBreakCode
       Else
-        QueryString = "select" & LineBreakCode
-        QueryString = QueryString & "  UT.table_name TableName," & LineBreakCode
-        QueryString = QueryString & "  UTC.Comments," & LineBreakCode
-        QueryString = QueryString & "  UT.tablespace_name TableSpaceName" & LineBreakCode
-        QueryString = QueryString & "from USER_TABLES UT left join USER_TAB_COMMENTS UTC on UT.table_name =UTC.table_name" & LineBreakCode
-        QueryString = QueryString & "where UT.tablespace_name='" & DBTableSpace & "';" & LineBreakCode
+        queryString = "select" & LineBreakCode
+        queryString = queryString & "  UT.table_name TableName," & LineBreakCode
+        queryString = queryString & "  UTC.Comments," & LineBreakCode
+        queryString = queryString & "  UT.tablespace_name TableSpaceName" & LineBreakCode
+        queryString = queryString & "from USER_TABLES UT left join USER_TAB_COMMENTS UTC on UT.table_name =UTC.table_name" & LineBreakCode
+        queryString = queryString & "where UT.tablespace_name='" & DBTableSpace & "';" & LineBreakCode
       End If
 
-      QueryString = QueryString & " order by UT.table_name" & LineBreakCode
+      queryString = queryString & " order by UT.table_name" & LineBreakCode
 
     Case "SQLServer"
-      QueryString = "select table_name TableName,'' Comments from USER_TABLES;"
+      queryString = "select table_name TableName,'' Comments from USER_TABLES;"
   End Select
 
 
   Set DBRecordset = New ADODB.Recordset
-  DBRecordset.Open QueryString, dbCon, adOpenKeyset, adLockReadOnly
+  DBRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
 
 
   Set DBRecordset = Nothing

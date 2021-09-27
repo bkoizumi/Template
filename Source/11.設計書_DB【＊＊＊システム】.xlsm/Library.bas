@@ -499,7 +499,7 @@ Function convFixedLength(strTarget As String, lengs As Long, addString As String
   Dim strFirst As String
   Dim strExceptFirst As String
 
-  Do While LenB(strTarget) <= lengs
+  Do While Len(strTarget) <= lengs
     strTarget = strTarget & addString
   Loop
   convFixedLength = strTarget
@@ -1708,7 +1708,7 @@ End Function
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-Function showDebugForm(ByVal meg1 As String, Optional meg2 As String)
+Function showDebugForm(ByVal meg1 As String, Optional meg2 As Variant)
   Dim runTime As Date
   Dim StartUpPosition As Long
 
@@ -1721,7 +1721,11 @@ Function showDebugForm(ByVal meg1 As String, Optional meg2 As String)
   End If
 
   meg1 = Replace(meg1, vbNewLine, " ")
-  meg1 = Application.WorksheetFunction.Trim(meg1)
+  
+  If IsMissing(meg2) = False Then
+    meg2 = CStr(meg2)
+    meg1 = meg1 & "ÅF" & Application.WorksheetFunction.Trim(meg2)
+  End If
   
   Select Case setVal("debugMode")
     Case "file"
@@ -1913,11 +1917,21 @@ Function outputLog(runTime As Date, Message As String)
 End Function
 
 '==================================================================================================
-Function outputText(Message As String, outputFilePath)
+Function outputText(Message As String, outputFilePath As String)
 
-  Open outputFilePath For Output As #1
-  Print #1, Message
-  Close #1
+  With CreateObject("ADODB.Stream")
+    .Charset = "UTF-8"
+    .Open
+    .WriteText Message, 1
+    .SaveToFile outputFilePath, 2
+    .Close
+  End With
+  
+  
+  
+'  Open outputFilePath For Output As #1
+'  Print #1, Message
+'  Close #1
 
 End Function
 

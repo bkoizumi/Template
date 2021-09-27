@@ -187,6 +187,7 @@ Function IsTable(tableName As String) As Boolean
       rslFlg = Ctl_Access.IsTable(Range(setVal("Cell_physicalTableName")))
       
     Case "MySQL"
+      rslFlg = Ctl_MySQL.IsTable(Range(setVal("Cell_physicalTableName")))
       
     Case "PostgreSQL"
       

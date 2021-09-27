@@ -16,7 +16,7 @@ Public sheetTblList   As Worksheet
 
 
 'グローバル変数----------------------------------
-Public Const thisAppName = "DB設計書"
+Public Const thisAppName = "Addin For Excel Template"
 Public Const thisAppVersion = "V1.0-beta.1"
 
 Public ConnectServer      As String
@@ -100,8 +100,8 @@ Function Setting(Optional reCheckFlg As Boolean)
   Set ThisBook = ThisWorkbook
   
   'ワークシート名の設定
-  'Set sheetSetting = ThisBook.Worksheets("設定-MySQL")
-  Set sheetSetting = ThisBook.Worksheets("設定-ACC")
+  Set sheetSetting = ThisBook.Worksheets("設定-MySQL")
+  'Set sheetSetting = ThisBook.Worksheets("設定-ACC")
   
   
   Set sheetNotice = ThisBook.Worksheets("Notice")

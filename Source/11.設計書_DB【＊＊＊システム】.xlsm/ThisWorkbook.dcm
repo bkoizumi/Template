@@ -16,4 +16,11 @@ End Sub
 Private Sub Workbook_Open()
   Call Application.OnKey("{F1}", "")
   Call Application.OnKey("{F2}", "Ctl_Zoom.ZoomIn")
+  
+'  Call Application.OnKey("^-", "Ctl_Common.deleteRow")
+'  Call Application.OnKey("^+", "Ctl_Common.insertRow")
+'
+'  Application.MacroOptions Macro:="Ctl_Common.deleteRow", ShortcutKey:="-"
+'  Application.MacroOptions Macro:="Ctl_Common.insertRow", ShortcutKey:="+"
+  
 End Sub

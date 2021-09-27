@@ -15,13 +15,9 @@
     </group >
 
     <group id="DB操作" label="DB操作">
-      <menu id="M_DB取得" label="情報取得&#xD;&#xA;" size="large" itemSize="large" imageMso="DatabaseModelingReverse">
-        <menuSeparator id="MS_DB取得" title="DB取得" />
-        <button id="テーブル情報取得" label="テーブル情報取得"  imageMso="DatabaseModelingReverse"  onAction="Ctl_Ribbon.getTableInfo"      description="テーブル情報取得 &#13;" />
-        <button id="カラム情報取得"   label="カラム情報取得"    imageMso="DatabaseModelingReverse"  onAction="Ctl_Ribbon.getColumnInfo"  description="カラム情報取得 &#13;" />
-      </menu>
-
-      <button id="テーブル情報反映" label="情報反映&#xD;&#xA;" size="large" imageMso="DatabaseSqlServer"  onAction="Ctl_Ribbon.CreateTableInfo"   description="テーブル情報反映 &#13;" />
+      <button id="一括取得"         label="一括取得"  imageMso="DatabaseModelingReverse"  onAction="Ctl_Ribbon.getDatabaseInfo" supertip="一括取得 &#13;" />
+      <button id="テーブル情報取得" label="情報取得"  imageMso="DatabaseModelingReverse"  onAction="Ctl_Ribbon.getTableInfo"    supertip="テーブル情報取得 &#13;" />
+      <button id="テーブル情報反映" label="情報反映"  imageMso="DatabaseSqlServer"        onAction="Ctl_Ribbon.CreateTableInfo" supertip="テーブル情報反映 &#13;" />
 
       <menu id="M_DDL生成" label="DDL生成&#xD;&#xA;" size="large" itemSize="large" imageMso="SqlSpecificMenu2">
         <menuSeparator id="MS_DDL生成" title="DDL生成" />

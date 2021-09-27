@@ -353,7 +353,7 @@ Function CreateTable()
       End If
       
       If Range("B" & line) <> "" Then
-        Call Ctl_ProgressBar.showBar(thisAppName, 1, PrgP_Max, line, endLine, "カラム情報変更：" & Range(setVal("Cell_physicalName")))
+        Call Ctl_ProgressBar.showBar(thisAppName, 1, PrgP_Max, line, endLine, "カラム情報変更：" & Range(setVal("Cell_physicalName") & line))
       End If
     Next
     

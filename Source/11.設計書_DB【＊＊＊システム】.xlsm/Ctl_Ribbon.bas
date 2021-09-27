@@ -415,6 +415,45 @@ End Function
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
 '==================================================================================================
+Function getDatabaseInfo(control As IRibbonControl)
+  
+  '処理開始--------------------------------------
+  FuncName = "Ctl_Ribbon.getDatabaseInfo"
+  Call Library.startScript
+  Call init.Setting
+  Call Ctl_ProgressBar.showStart
+  runFlg = True
+  Call Library.showDebugForm(FuncName & "=========================================")
+  '----------------------------------------------
+
+  Select Case setVal("DBMS")
+    Case "MSAccess"
+      'Call Ctl_Access.getDatabaseInfo
+      
+    Case "MySQL"
+      Call Ctl_MySQL.dbOpen
+      Call Ctl_MySQL.getDatabaseInfo
+      Call Ctl_MySQL.dbClose
+      
+    Case "PostgreSQL"
+      'Call Ctl_Access.getDatabaseInfo
+      
+    Case "SQLServer"
+      'Call Ctl_SQLServer.getDatabaseInfo
+      
+    Case Else
+  End Select
+  
+  '処理終了--------------------------------------
+'  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Call Library.showDebugForm("=================================================================")
+  Call Ctl_ProgressBar.showEnd
+  Call Library.endScript
+  Call init.usetting
+  '----------------------------------------------
+End Function
+
+'==================================================================================================
 Function getTableInfo(control As IRibbonControl)
   
   '処理開始--------------------------------------
@@ -457,45 +496,6 @@ End Function
 
 
 '==================================================================================================
-Function getColumnInfo(control As IRibbonControl)
-  
-  '処理開始--------------------------------------
-  FuncName = "Ctl_Ribbon.getColumnInfo"
-  Call Library.startScript
-  Call init.Setting
-  Call Ctl_ProgressBar.showStart
-  runFlg = True
-  Call Library.showDebugForm(FuncName & "=========================================")
-  '----------------------------------------------
-
-  Select Case setVal("DBMS")
-    Case "MSAccess"
-      Call Ctl_Access.getColumnInfo
-      
-    Case "MySQL"
-      Call Ctl_MySQL.dbOpen
-      Call Ctl_MySQL.getColumnInfo
-      Call Ctl_MySQL.dbClose
-      
-    Case "PostgreSQL"
-      Call Ctl_Access.getColumnInfo
-      
-    Case "SQLServer"
-      Call Ctl_SQLServer.getColumnInfo
-      
-    Case Else
-  End Select
-  
-  '処理終了--------------------------------------
-'  Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
-  Call Ctl_ProgressBar.showEnd
-  Call Library.endScript
-  Call init.usetting
-  '----------------------------------------------
-End Function
-
-'==================================================================================================
 Function CreateTableInfo(control As IRibbonControl)
   
   '処理開始--------------------------------------
@@ -512,9 +512,9 @@ Function CreateTableInfo(control As IRibbonControl)
       Call Ctl_Access.CreateTable
       
     Case "MySQL"
-'      Call Ctl_MySQL.dbOpen
-'      Call Ctl_MySQL.CreateTable
-'      Call Ctl_MySQL.dbClose
+      Call Ctl_MySQL.dbOpen
+      Call Ctl_MySQL.CreateTable
+      Call Ctl_MySQL.dbClose
       
     Case "PostgreSQL"
 '      Ctl_Access.getTableInfo

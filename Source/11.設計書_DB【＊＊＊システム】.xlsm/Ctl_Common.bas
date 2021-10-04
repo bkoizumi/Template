@@ -12,12 +12,16 @@ Function ClearData()
 
   '処理開始--------------------------------------
   'On Error GoTo catchError
-  
-  FuncName = "Ctl_Common.ClearData"
+  Const funcName As String = "Ctl_Common.ClearData"
+  If runFlg = False Then
+    Call Library.startScript
+    Call init.Setting
+    Call Ctl_ProgressBar.showStart
+  End If
   '--------------------------
   
   Call init.Setting
-  Call Library.showDebugForm(FuncName & "=============================================")
+  Call Library.showDebugForm(funcName & "=============================================")
   
   endLine = Cells(Rows.count, 1).End(xlUp).Row
   line = startLine
@@ -28,7 +32,8 @@ Function ClearData()
       line = line - 1
     ElseIf Range("A" & line) = "Column" Then
       On Error Resume Next
-      Range("B" & line & ":AD" & line).SpecialCells(xlCellTypeConstants, 23).ClearContents
+      Range("B" & line & ":AZ" & line).SpecialCells(xlCellTypeConstants, 23).ClearContents
+      Rows(line & ":" & line).RowHeight = setVal("defaultRowHeight")
       On Error GoTo catchError
     End If
     DoEvents
@@ -39,12 +44,17 @@ Function ClearData()
   
   '処理終了--------------------------------------
   Call Library.showDebugForm("=================================================================")
+  If runFlg = False Then
+    Call Ctl_ProgressBar.showEnd
+    Call Library.endScript
+    Call init.unsetting(True)
+  End If
   '----------------------------------------------
   
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
 End Function
 
 
@@ -52,7 +62,7 @@ End Function
 Function addRow(line As Long)
 
   If line >= 47 Then
-    Rows(line & ":" & line).Copy
+    Rows(line & ":" & line).copy
     Rows(line & ":" & line).Insert Shift:=xlDown
     Range("A" & line) = ""
     Application.CutCopyMode = False
@@ -72,7 +82,7 @@ Function chkIndexRow()
       Exit For
     End If
   Next
-  Call Library.showDebugForm("IndexRow：" & IndexRow)
+  Call Library.showDebugForm("IndexRow", IndexRow)
   chkIndexRow = IndexRow
 End Function
 
@@ -83,13 +93,15 @@ Function addSheet(newSheetName As String)
   On Error GoTo catchError
   
   If Library.chkSheetExists(newSheetName) = False Then
-    sheetCopy.Copy After:=Worksheets(Worksheets.count)
+    sheetCopy.copy After:=Worksheets(Worksheets.count)
     ThisWorkbook.Sheets(Worksheets.count).Name = newSheetName
   End If
+  Call Ctl_ProgressBar.showBar(thisAppName, PrgP_Cnt, PrgP_Max, 1, 2, "シート追加")
+  
   Sheets(newSheetName).Select
-  Range("V2") = Application.UserName
-  Range("Y2") = Format(Date, "yyyy/mm/dd")
-  Range("V9:Z48").Merge True
+  Range(setVal("Cell_UpdateBy")) = Application.UserName
+  Range(setVal("Cell_UpdateAt")) = Format(Date, "yyyy/mm/dd")
+'  Range("W9:AA48").Merge True
   
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
@@ -105,9 +117,20 @@ Function makeTblList()
   Dim targetSheet   As Worksheet
   Dim sheetName As String
   
-'  On Error GoTo catchError
+  '処理開始--------------------------------------
+  'On Error GoTo catchError
+  Const funcName As String = "Ctl_Common.makeTblList"
 
-  Call init.Setting
+  'runFlg = True
+  If runFlg = False Then
+    Call Library.startScript
+    Call init.Setting
+    Call Ctl_ProgressBar.showStart
+    Call Library.showDebugForm("runFlg", runFlg)
+  End If
+  Call Library.showDebugForm(funcName & "===========================================")
+  '----------------------------------------------
+  
   sheetTblList.Select
   endLine = sheetTblList.Cells(Rows.count, 3).End(xlUp).Row + 1
   Range("C6:I" & endLine).ClearContents
@@ -124,6 +147,7 @@ Function makeTblList()
     Select Case sheetName
       Case "設定-MySQL", "設定-ACC", "Notice", "DataType", "コピー用", "表紙", "TBLリスト", "変更履歴", "ER図"
       Case Else
+        Call Library.showDebugForm("sheetName", sheetName)
     
         sheetTblList.Range("B" & line).FormulaR1C1 = "=ROW()-5"
         sheetTblList.Range("C" & line) = Sheets(sheetName).Range("C2")
@@ -168,8 +192,14 @@ Function makeTblList()
   
   
   '処理終了--------------------------------------
-  Call Ctl_ProgressBar.showEnd
-  Call Library.endScript
+  'Application.Goto Reference:=Range("A1"), Scroll:=True
+  Call Library.showDebugForm("=================================================================")
+  If runFlg = False Then
+    Call Ctl_ProgressBar.showEnd
+    Call Library.endScript
+    Call init.unsetting(True)
+  End If
+  '----------------------------------------------
     
     
   Exit Function
@@ -213,17 +243,17 @@ Function insertRow()
 
   '処理開始--------------------------------------
   'On Error GoTo catchError
-  FuncName = "Ctl_Common.insertRow"
+  Const funcName As String = "Ctl_Common.insertRow"
   
   Call init.Setting
-  Call Library.showDebugForm(FuncName & "=============================================")
+  Call Library.showDebugForm(funcName & "=============================================")
   '--------------------------
   Set targetSheet = ActiveSheet
   line = ActiveCell.Row
   
   Rows(line & ":" & line).Insert Shift:=xlDown
   
-  sheetCopy.Rows("48:48").Copy
+  sheetCopy.Rows("48:48").copy
   targetSheet.Range("A" & line).Select
   ActiveSheet.Paste
   targetSheet.Range("B" & line) = "insert"
@@ -236,7 +266,7 @@ Function insertRow()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
 End Function
 
 
@@ -246,10 +276,10 @@ Function deleteRow()
 
   '処理開始--------------------------------------
   'On Error GoTo catchError
-  FuncName = "Ctl_Common.deleteRow"
+  Const funcName As String = "Ctl_Common.deleteRow"
   
   Call init.Setting
-  Call Library.showDebugForm(FuncName & "=============================================")
+  Call Library.showDebugForm(funcName & "=============================================")
   '--------------------------
   Set targetSheet = ActiveSheet
   line = ActiveCell.Row
@@ -267,7 +297,7 @@ Function deleteRow()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
 End Function
 
 
@@ -314,13 +344,14 @@ Function chkEditRow(targetRange As Range, changeVal As String)
   'On Error GoTo catchError
 
   
-  FuncName = "Ctl_Option.chkEditRow"
-  Call Library.showDebugForm(FuncName & "==========================================")
+  Const funcName As String = "Ctl_Option.chkEditRow"
+  Call Library.showDebugForm(funcName & "==========================================")
   '--------------------------------------
 
+  Call Library.showDebugForm("targetRange.Value ：" & targetRange.Value)
   Call Library.showDebugForm("targetRange.Column：" & targetRange.Column)
   Call Library.showDebugForm("targetRange.Row   ：" & targetRange.Row)
-  
+    
   If targetRange.Column = 5 Then
     Select Case Range("B" & targetRange.Row)
       Case "", "edit"
@@ -328,6 +359,12 @@ Function chkEditRow(targetRange As Range, changeVal As String)
       Case "insert"
       Case "delete"
       Case Else
+        If Range("B" & targetRange.Row) Like "rename:*" Then
+          '元に戻したとき
+          If targetRange.Value = Replace(Range("B" & targetRange.Row), "rename:", "") Then
+            Range("B" & targetRange.Row) = ""
+          End If
+        End If
     End Select
   Else
     Select Case Range("B" & targetRange.Row)
@@ -344,9 +381,9 @@ Function chkEditRow(targetRange As Range, changeVal As String)
   End If
 
   '更新情報を設定
-  If Range("Y2") <> Format(Date, "yyyy/mm/dd") Then
-    Range("V3") = Application.UserName
-    Range("Y3") = Format(Date, "yyyy/mm/dd")
+  If Range(setVal("Cell_CreateAt")) <> Format(Date, "yyyy/mm/dd") Then
+    Range(setVal("Cell_UpdateBy")) = Application.UserName
+    Range(setVal("Cell_UpdateAt")) = Format(Date, "yyyy/mm/dd")
   End If
 
 
@@ -357,5 +394,5 @@ Function chkEditRow(targetRange As Range, changeVal As String)
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
 End Function

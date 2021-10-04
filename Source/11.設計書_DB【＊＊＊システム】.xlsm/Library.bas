@@ -97,14 +97,14 @@ End Function
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-Function errorHandle(FuncName As String, ByRef objErr As Object)
+Function errorHandle(funcName As String, ByRef objErr As Object)
 
   Dim Message As String
   Dim runTime As Date
   Dim endLine As Long
 
   runTime = Format(Now(), "yyyy/mm/dd hh:nn:ss")
-  Message = FuncName & vbCrLf & objErr.Description
+  Message = funcName & vbCrLf & objErr.Description
 
   '音声認識発話
   Application.Speech.Speak Text:="エラーが発生しました", SpeakAsync:=True
@@ -810,7 +810,7 @@ Function delSheetData(Optional line As Long)
   End If
   DoEvents
 
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.GoTo Reference:=Range("A1"), Scroll:=True
 End Function
 
 '**************************************************************************************************
@@ -843,17 +843,17 @@ End Function
 '**************************************************************************************************
 Function delImage()
   Dim Rng As Range
-  Dim shp As Shape
+  Dim Shp As Shape
 
   If typeName(Selection) <> "Range" Then
     Exit Function
   End If
 
-  For Each shp In ActiveSheet.Shapes
-    Set Rng = Range(shp.TopLeftCell, shp.BottomRightCell)
+  For Each Shp In ActiveSheet.Shapes
+    Set Rng = Range(Shp.TopLeftCell, Shp.BottomRightCell)
 
     If Not (Intersect(Rng, Selection) Is Nothing) Then
-      shp.Delete
+      Shp.Delete
     End If
   Next
 End Function
@@ -901,7 +901,7 @@ Function delTableData()
   Cells.Select
   Selection.NumberFormatLocal = "G/標準"
 
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.GoTo Reference:=Range("A1"), Scroll:=True
 End Function
 
 
@@ -1711,7 +1711,7 @@ End Function
 Function showDebugForm(ByVal meg1 As String, Optional meg2 As Variant)
   Dim runTime As Date
   Dim StartUpPosition As Long
-
+  
   On Error GoTo catchError
 
   runTime = Format(Now(), "yyyy/mm/dd hh:nn:ss")
@@ -1723,8 +1723,7 @@ Function showDebugForm(ByVal meg1 As String, Optional meg2 As Variant)
   meg1 = Replace(meg1, vbNewLine, " ")
   
   If IsMissing(meg2) = False Then
-    meg2 = CStr(meg2)
-    meg1 = meg1 & "：" & Application.WorksheetFunction.Trim(meg2)
+    meg1 = "  " & meg1 & "：" & Application.WorksheetFunction.Trim(CStr(meg2))
   End If
   
   Select Case setVal("debugMode")
@@ -2008,7 +2007,7 @@ Function importXlsx(filePath As String, targetSheet As String, targeArea As Stri
 
   If ActiveSheet.FilterMode Then ActiveSheet.ShowAllData
 
-  ActiveWorkbook.Sheets(targetSheet).Range(targeArea).Copy
+  ActiveWorkbook.Sheets(targetSheet).Range(targeArea).copy
   dictSheet.Range("A1").PasteSpecial xlPasteValues
 
   Application.CutCopyMode = False

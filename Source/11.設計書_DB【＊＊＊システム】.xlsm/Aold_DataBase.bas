@@ -264,7 +264,7 @@ Function DataBase_AddSheet()
 
   If InputTableName <> "" And InputTableIDa <> "" Then
     Library_StartScript
-    Sheets("コピー用").Copy After:=Worksheets(Worksheets.count)
+    Sheets("コピー用").copy After:=Worksheets(Worksheets.count)
     ActiveWorkbook.Sheets(Worksheets.count).Tab.ColorIndex = -4142
     ActiveWorkbook.Sheets(Worksheets.count).Name = InputTableIDa
 
@@ -1037,7 +1037,7 @@ Function DataBase_GetTableList()
     End If
 
     If Library_ChkSheetName(newSheetName) = False Then
-      Sheets("コピー用").Copy After:=Worksheets(Worksheets.count)
+      Sheets("コピー用").copy After:=Worksheets(Worksheets.count)
       ActiveWorkbook.Sheets(Worksheets.count).Tab.ColorIndex = -4142
       ActiveWorkbook.Sheets(Worksheets.count).Name = newSheetName
     Else

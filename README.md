@@ -1,8 +1,16 @@
-# 仕様書等のテンプレートファイル
+# Addin For Excel Template
 
 ## 設計書
 
 ## DB設計書
+
+### 対応DB
+* MSAccess
+* MySQL
+* PostgreSQL
+* SQLServer
+
+
 
 ## IF設計書
 

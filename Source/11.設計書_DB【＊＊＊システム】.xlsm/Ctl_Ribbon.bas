@@ -140,7 +140,7 @@ Function selectActiveSheet(control As IRibbonControl)
   ActiveWindow.ScrollWorkbookTabs Sheets:=sheetCount
   Sheets(sheetNameID).Select
   
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.GoTo Reference:=Range("A1"), Scroll:=True
   
   Call Library.endScript
 End Function
@@ -249,7 +249,7 @@ Function OpenFavoriteList(control As IRibbonControl)
   If Library.chkFileExists(fileNamePath) Then
     Workbooks.Open fileName:=fileNamePath
   End If
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.GoTo Reference:=Range("A1"), Scroll:=True
 End Function
 
 
@@ -376,22 +376,22 @@ End Function
 Function ClearAll(control As IRibbonControl)
   
   '処理開始--------------------------------------
-  FuncName = "Ctl_Ribbon.ClearAll"
+  Const funcName As String = "Ctl_Ribbon.ClearAll"
   Call Library.startScript
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(FuncName & "==============================================")
+  Call Library.showDebugForm(funcName & "==============================================")
   '----------------------------------------------
   
   Call Ctl_Option.ClearAll
   
   '処理終了--------------------------------------
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.GoTo Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
   Call Library.endScript
-  Call init.usetting
+  Call init.unsetting(True)
   '----------------------------------------------
 End Function
 
@@ -401,9 +401,40 @@ End Function
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
 '==================================================================================================
+'シート追加
 Function addSheet(control As IRibbonControl)
   Call Ctl_Sheet.showAddSheetOption
   Call Ctl_Sheet.addSheet
+End Function
+
+'==================================================================================================
+'テーブルリスト更新
+Function makeTblList(control As IRibbonControl)
+  Call Ctl_Common.makeTblList
+End Function
+
+'==================================================================================================
+'ER図更新
+Function makeERImage(control As IRibbonControl)
+  '処理開始--------------------------------------
+  Const funcName As String = "Ctl_Ribbon.getDatabaseInfo"
+  Call Library.startScript
+  Call init.Setting
+  Call Ctl_ProgressBar.showStart
+  runFlg = True
+  Call Library.showDebugForm(funcName & "=========================================")
+  '----------------------------------------------
+
+  Call Ctl_ErImg.showUserForm
+  
+  
+  '処理終了--------------------------------------
+  Call Library.showDebugForm("=================================================================")
+  Call Ctl_ProgressBar.showEnd
+  Call Library.endScript
+  Call init.unsetting(True)
+  '----------------------------------------------
+
 End Function
 
 
@@ -418,12 +449,12 @@ End Function
 Function getDatabaseInfo(control As IRibbonControl)
   
   '処理開始--------------------------------------
-  FuncName = "Ctl_Ribbon.getDatabaseInfo"
+  Const funcName As String = "Ctl_Ribbon.getDatabaseInfo"
   Call Library.startScript
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(FuncName & "=========================================")
+  Call Library.showDebugForm(funcName & "=========================================")
   '----------------------------------------------
 
   Select Case setVal("DBMS")
@@ -449,7 +480,7 @@ Function getDatabaseInfo(control As IRibbonControl)
   Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
   Call Library.endScript
-  Call init.usetting
+  Call init.unsetting(True)
   '----------------------------------------------
 End Function
 
@@ -457,12 +488,12 @@ End Function
 Function getTableInfo(control As IRibbonControl)
   
   '処理開始--------------------------------------
-  FuncName = "Ctl_Ribbon.getTableInfo"
+  Const funcName As String = "Ctl_Ribbon.getTableInfo"
   Call Library.startScript
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(FuncName & "==========================================")
+  Call Library.showDebugForm(funcName & "==========================================")
   '----------------------------------------------
   
   Select Case setVal("DBMS")
@@ -489,7 +520,7 @@ Function getTableInfo(control As IRibbonControl)
   Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
   Call Library.endScript
-  Call init.usetting
+  Call init.unsetting(True)
   '----------------------------------------------
   
 End Function
@@ -499,12 +530,12 @@ End Function
 Function CreateTableInfo(control As IRibbonControl)
   
   '処理開始--------------------------------------
-  FuncName = "Ctl_Ribbon.CreateTableInfo"
+  Const funcName As String = "Ctl_Ribbon.CreateTableInfo"
   Call Library.startScript
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(FuncName & "=======================================")
+  Call Library.showDebugForm(funcName & "=======================================")
   '----------------------------------------------
   
   Select Case setVal("DBMS")
@@ -531,7 +562,7 @@ Function CreateTableInfo(control As IRibbonControl)
   Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
   Call Library.endScript
-  Call init.usetting
+  Call init.unsetting(True)
   '----------------------------------------------
   
 End Function

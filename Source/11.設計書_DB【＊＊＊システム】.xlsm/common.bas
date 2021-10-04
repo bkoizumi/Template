@@ -54,7 +54,7 @@ Function ÉVÅ[Égí«â¡(newSheetName As String)
   Dim line As Long, endLine As Long, colLine As Long, endColLine As Long
 '  On Error GoTo catchError
 
-    sheetCopy.Copy After:=Worksheets(Worksheets.count)
+    sheetCopy.copy After:=Worksheets(Worksheets.count)
     ActiveWorkbook.Sheets(Worksheets.count).Tab.ColorIndex = -4142
     ActiveWorkbook.Sheets(Worksheets.count).Name = newSheetName
     Sheets(newSheetName).Select

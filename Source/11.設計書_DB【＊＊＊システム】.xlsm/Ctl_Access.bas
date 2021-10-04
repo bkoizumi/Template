@@ -69,14 +69,14 @@ Function getTableInfo()
   '処理開始--------------------------------------
   'On Error GoTo catchError
   ----
-  FuncName = "Ctl_Access.getTableInfo"
+  Const funcName As String = "Ctl_Access.getTableInfo"
   PrgP_Max = 4
   If runFlg = False Then
     Call Library.startScript
     Call init.Setting
     Call Ctl_ProgressBar.showStart
   End If
-  Call Library.showDebugForm(FuncName & "==========================================")
+  Call Library.showDebugForm(funcName & "==========================================")
   'Call Ctl_Access.dbOpen
   '----------------------------------------------
   Set cat = New ADOX.Catalog
@@ -112,19 +112,19 @@ Lbl_nextfor:
   
   '処理終了--------------------------------------
 '  Call Ctl_Access.dbClose
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.GoTo Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
-    Call init.usetting
+    Call init.unsetting(True)
   End If
   '----------------------------------------------
 
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
 End Function
 
 
@@ -145,7 +145,7 @@ Function getColumnInfo()
   'On Error GoTo catchError
   
   
-  FuncName = "Ctl_Access.getColumnInfo"
+  Const funcName As String = "Ctl_Access.getColumnInfo"
   If PrgP_Max = 0 Then
     PrgP_Max = 2
   End If
@@ -156,7 +156,7 @@ Function getColumnInfo()
     Call Ctl_ProgressBar.showStart
   End If
   
-  Call Library.showDebugForm(FuncName & "=========================================")
+  Call Library.showDebugForm(funcName & "=========================================")
   Call Ctl_Access.dbOpen
   '----------------------------------------------
   Set targetSheet = ActiveSheet
@@ -202,19 +202,19 @@ Function getColumnInfo()
   Next
   '処理終了--------------------------------------
   Call Ctl_Access.dbClose
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.GoTo Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
-    Call init.usetting
+    Call init.unsetting(True)
   End If
   '----------------------------------------------
 
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
 End Function
 
 
@@ -228,14 +228,14 @@ Function makeDDL()
   
   '処理開始--------------------------------------
   'On Error GoTo catchError
-  FuncName = "Ctl_Access.makeDDL"
+  Const funcName As String = "Ctl_Access.makeDDL"
   PrgP_Max = 4
   If runFlg = False Then
     Call Library.startScript
     Call init.Setting
     Call Ctl_ProgressBar.showStart
   End If
-  Call Library.showDebugForm(FuncName & "==========================================")
+  Call Library.showDebugForm(funcName & "==========================================")
   'Call Ctl_Access.dbOpen
   '----------------------------------------------
   endLine = Cells(Rows.count, 5).End(xlUp).Row
@@ -269,19 +269,19 @@ Function makeDDL()
   
   '処理終了--------------------------------------
 '  Call Ctl_Access.dbClose
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.GoTo Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
-    Call init.usetting
+    Call init.unsetting(True)
   End If
   '----------------------------------------------
 
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
 End Function
 
 
@@ -296,14 +296,14 @@ Function CreateTable()
   '処理開始--------------------------------------
   'On Error GoTo catchError
 
-  FuncName = "Ctl_Access.CreateTable"
+  Const funcName As String = "Ctl_Access.CreateTable"
   PrgP_Max = 4
   If runFlg = False Then
     Call Library.startScript
     Call init.Setting
     Call Ctl_ProgressBar.showStart
   End If
-  Call Library.showDebugForm(FuncName & "===========================================")
+  Call Library.showDebugForm(funcName & "===========================================")
   Call Ctl_Access.dbOpen
   '----------------------------------------------
   endLine = Cells(Rows.count, 3).End(xlUp).Row
@@ -321,7 +321,7 @@ Function CreateTable()
         Else
           queryString = queryString & ";" & vbNewLine
         End If
-        Call Library.showDebugForm("QueryString：" & queryString)
+        Call Library.showDebugForm("QueryString", queryString)
         Call Ctl_Access.runQuery(queryString)
         Range("B" & line) = ""
         
@@ -335,17 +335,17 @@ Function CreateTable()
 '        Else
 '          queryString = queryString & ";" & vbNewLine
 '        End If
-'        Call Library.showDebugForm("QueryString：" & queryString)
+'        Call Library.showDebugForm("QueryString", queryString)
 '        Call Ctl_Access.runQuery(queryString)
 '
 '        queryString = "ALTER TABLE [" & Range(setVal("Cell_physicalTableName")) & "] DROP COLUMN [" & oldColumnName & "];"
-'        Call Library.showDebugForm("QueryString：" & queryString)
+'        Call Library.showDebugForm("QueryString", queryString)
 '        Call Ctl_Access.runQuery(queryString)
       
       'カラム削除--------------------------------
       ElseIf Range("B" & line) = "delete" Then
         queryString = "ALTER TABLE [" & Range(setVal("Cell_physicalTableName")) & "] DROP COLUMN [" & Range(setVal("Cell_physicalName") & line) & "];"
-        Call Library.showDebugForm("QueryString：" & queryString)
+        Call Library.showDebugForm("QueryString", queryString)
         Call Ctl_Access.runQuery(queryString)
         Rows(line & ":" & line).Delete Shift:=xlUp
         line = line - 1
@@ -378,7 +378,7 @@ Function CreateTable()
       End If
     Next
     queryString = queryString & vbNewLine & ColumnString & ")"
-    Call Library.showDebugForm("QueryString：" & queryString)
+    Call Library.showDebugForm("QueryString", queryString)
     Call Ctl_Access.runQuery(queryString)
     Range("B5") = "exist"
   End If
@@ -389,19 +389,19 @@ Function CreateTable()
   
   '処理終了--------------------------------------
   Call Ctl_Access.dbClose
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.GoTo Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
-    Call init.usetting
+    Call init.unsetting(True)
   End If
   '----------------------------------------------
 
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
 End Function
 
 
@@ -448,8 +448,8 @@ catchError:
   Set oCn = Nothing
   
   If Err.Number = -2147217900 Then
-    Call Library.showNotice(502, FuncName & " 構文エラー" & vbNewLine & queryString, True)
+    Call Library.showNotice(502, funcName & " 構文エラー" & vbNewLine & queryString, True)
   Else
-    Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+    Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
   End If
 End Function

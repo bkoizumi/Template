@@ -31,7 +31,7 @@ Function addSheet()
   
   '処理開始--------------------------------------
   'On Error GoTo catchError
-  FuncName = "Ctl_Sheet.addSheet"
+  Const funcName As String = "Ctl_Sheet.addSheet"
 
   If runFlg = False Then
     Call Library.startScript
@@ -41,7 +41,7 @@ Function addSheet()
   
   newSheetName = CopySheet.Range("H5")
   
-  CopySheet.Copy After:=Worksheets(Worksheets.count)
+  CopySheet.copy After:=Worksheets(Worksheets.count)
   ActiveWorkbook.Sheets(Worksheets.count).Tab.ColorIndex = -4142
   ActiveWorkbook.Sheets(Worksheets.count).Name = newSheetName
   Sheets(newSheetName).Select
@@ -61,7 +61,7 @@ Function addSheet()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, FuncName & vbNewLine & Err.Description, True)
+  Call Library.showNotice(400, funcName & vbNewLine & Err.Description, True)
 End Function
 
 

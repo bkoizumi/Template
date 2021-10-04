@@ -10,8 +10,9 @@
     </group >
 
     <group id="共通" label="共通">
-      <button id="シート追加"     label="シート追加"    imageMso="SheetInsert" screentip="シート追加"     supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.addSheet" />
-      <button id="TBLリスト更新"  label="TBLリスト更新" imageMso="CurrentViewSettings" screentip="TBLリスト更新"  supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.makeTblList" />
+      <button id="シート追加"     label="シート追加"    imageMso="SheetInsert"          screentip="シート追加"    supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.addSheet" />
+      <button id="TBLリスト更新"  label="TBLリスト更新" imageMso="CurrentViewSettings"  screentip="TBLリスト更新" supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.makeTblList" />
+      <button id="ER図更新"       label="ER図更新"      imageMso="CurrentViewSettings"  screentip="ER図更新"      supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.makeERImage" />
     </group >
 
     <group id="DB操作" label="DB操作">

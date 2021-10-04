@@ -12,7 +12,7 @@ Public sheetNotice    As Worksheet
 Public sheetDataType  As Worksheet
 Public sheetCopy      As Worksheet
 Public sheetTblList   As Worksheet
-
+Public sheetERImage   As Worksheet
 
 
 'グローバル変数----------------------------------
@@ -27,7 +27,6 @@ Public runFlg             As Boolean
 Public PrgP_Max           As Long
 Public PrgP_Cnt           As Long
 
-Public FuncName As String
 
 Public accFileName        As String
 Public accFileDir         As String
@@ -36,6 +35,12 @@ Public oldCellVal         As String
 
 'レジストリ登録用サブキー
 'Public Const RegistryKey  As String = "BK_Documents"
+
+
+Public tableList          As Object
+Public lValues()          As Variant
+Public useLogicalName     As Boolean
+Public usePhysicalName    As Boolean
 
 
 '設定値保持
@@ -62,7 +67,7 @@ Public ribbonVal      As Object
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
 '==================================================================================================
-Function usetting(Optional flg As Boolean = True)
+Function unsetting(Optional flg As Boolean = False)
 
   Set ThisBook = Nothing
   
@@ -91,7 +96,7 @@ Function Setting(Optional reCheckFlg As Boolean)
 '  ThisWorkbook.Save
 
   If logFile = "" Or reCheckFlg = True Then
-    Call usetting(False)
+    Call init.unsetting(False)
   Else
     Exit Function
   End If
@@ -109,6 +114,7 @@ Function Setting(Optional reCheckFlg As Boolean)
   
   Set sheetCopy = ThisBook.Worksheets("コピー用")
   Set sheetTblList = ThisBook.Worksheets("TBLリスト")
+  Set sheetERImage = ThisBook.Worksheets("ER図")
   
   logFile = ThisWorkbook.Path & "\ExcelMacro.log"
         

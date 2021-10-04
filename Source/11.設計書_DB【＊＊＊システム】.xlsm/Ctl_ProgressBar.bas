@@ -24,9 +24,9 @@ Public PrgMeg   As String
 Public Function showStart()
   
   With Frm_Progress
-    .StartUpPosition = 0
-    .Top = Application.Top + 10
-    .Left = Application.Left + 120
+    .StartUpPosition = 1
+'    .Top = Application.Top + 10
+'    .Left = Application.Left + 120
     .Caption = myMsg1
     
     

@@ -1,18 +1,20 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Frm_NewSheet 
-   Caption         =   "テーブル情報追加"
-   ClientHeight    =   3840
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Frm_TableList 
+   Caption         =   "テーブル情報"
+   ClientHeight    =   3615
    ClientLeft      =   120
    ClientTop       =   465
-   ClientWidth     =   6570
-   OleObjectBlob   =   "Frm_NewSheet.frx":0000
+   ClientWidth     =   9360
+   OleObjectBlob   =   "Frm_TableList.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
-Attribute VB_Name = "Frm_NewSheet"
+Attribute VB_Name = "Frm_TableList"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+Option Explicit
+
 
 '**************************************************************************************************
 ' * 初期設定
@@ -23,15 +25,8 @@ Private Sub UserForm_Initialize()
   Dim ListIndex As Integer
   Dim line As Long, endLine As Long
   
-  Call init.Setting
-  endLine = SettingSheet.Cells(Rows.count, 7).End(xlUp).Row
-  
-  With Me
-    For line = 3 To endLine
-      .DBType.AddItem SettingSheet.Range("G" & line).Text
-    Next
-  End With
-
+  usePhysicalName.Value = True
+  useImage.Value = True
 End Sub
 
 '**************************************************************************************************
@@ -44,23 +39,45 @@ End Sub
 Private Sub Cancel_Click()
   Unload Me
   
-  Call Library.endScript
-  End
 End Sub
 
 
 '==================================================================================================
 ' 実行
 Private Sub Submit_Click()
-  Dim execDay As Date
-
-  CopySheet.Range("D5") = Me.TableName01.Text
-  CopySheet.Range("H5") = Me.TableName02.Text
-  CopySheet.Range("D6") = Me.Comment.Text
-  CopySheet.Range("B2") = Me.DBType.Value
+  Dim i As Integer
+  
+  Call init.Setting
+  useLogicalName = useLogicalName.Value
+  usePhysicalName = usePhysicalName.Value
+  
+  setVal.Add "useImage", CStr(useImage.Value)
+  
+  With ListView1
+  For i = 1 To .ListItems.count
+    If .ListItems(i).Selected Then
+      Call Library.showDebugForm("リスト", .ListItems(i).Text)
+      Call Library.showDebugForm("リスト", .ListItems(i).SubItems(1))
+      
+      Call Ctl_ErImg.deleteImages(.ListItems(i).Text)
+      If useLogicalName.Value = True Then
+        Call Ctl_ErImg.makeTable(.ListItems(i).Text)
+      Else
+        Call Ctl_ErImg.makeTable(.ListItems(i).SubItems(1))
+      End If
+      
+      Call Ctl_ErImg.makeColumnList(.ListItems(i).Text)
+      Call Ctl_ErImg.copy(.ListItems(i).Text)
+    End If
+  Next i
+End With
+  
+  
+  
   
   Unload Me
 End Sub
 
   
+
 

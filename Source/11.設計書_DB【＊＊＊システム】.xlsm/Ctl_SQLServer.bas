@@ -296,7 +296,7 @@ Function getColumnInfo()
   Loop
   Set ClmRecordset = Nothing
   
-  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Application.GoTo Reference:=Range("A1"), Scroll:=True
   If runFlg = False Then
     Call dbClose
     

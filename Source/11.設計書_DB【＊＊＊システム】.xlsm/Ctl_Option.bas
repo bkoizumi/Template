@@ -14,14 +14,14 @@ Function ClearAll()
   '処理開始--------------------------------------
   'On Error GoTo catchError
 
-  FuncName = "Ctl_Option.ClearAll"
+  Const funcName As String = "Ctl_Option.ClearAll"
   If runFlg = False Then
     Call Library.startScript
     Call init.Setting
     Call Ctl_ProgressBar.showStart
   End If
   
-  Call Library.showDebugForm(FuncName & "==============================================")
+  Call Library.showDebugForm(funcName & "==============================================")
   '----------------------------------------------
 
 
@@ -37,16 +37,16 @@ Function ClearAll()
   '処理終了--------------------------------------
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
-    Application.Goto Reference:=Range("A1"), Scroll:=True
+    Application.GoTo Reference:=Range("A1"), Scroll:=True
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
-    Call init.usetting
+    Call init.unsetting(True)
   End If
   '----------------------------------------------
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, FuncName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
 End Function
 
 

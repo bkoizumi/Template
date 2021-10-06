@@ -10,6 +10,7 @@ Public targetSheet    As Worksheet
 Public sheetSetting   As Worksheet
 Public sheetNotice    As Worksheet
 Public sheetDataType  As Worksheet
+Public sheetTmp       As Worksheet
 Public sheetCopy      As Worksheet
 Public sheetTblList   As Worksheet
 Public sheetERImage   As Worksheet
@@ -109,8 +110,9 @@ Function Setting(Optional reCheckFlg As Boolean)
   'Set sheetSetting = ThisBook.Worksheets("設定-ACC")
   
   
-  Set sheetNotice = ThisBook.Worksheets("Notice")
   Set sheetDataType = ThisBook.Worksheets("DataType")
+  Set sheetTmp = ThisBook.Worksheets("Tmp")
+  Set sheetNotice = ThisBook.Worksheets("Notice")
   
   Set sheetCopy = ThisBook.Worksheets("コピー用")
   Set sheetTblList = ThisBook.Worksheets("TBLリスト")
@@ -206,7 +208,7 @@ Function 名前定義()
   Next
   
   'Book用の設定
-  For colLine = 7 To 10
+  For colLine = 7 To 11
     endLine = sheetSetting.Cells(Rows.count, colLine).End(xlUp).Row
     sheetSetting.Range(sheetSetting.Cells(5, colLine), sheetSetting.Cells(endLine, colLine)).Name = sheetSetting.Cells(4, colLine)
   Next

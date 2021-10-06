@@ -566,3 +566,46 @@ Function CreateTableInfo(control As IRibbonControl)
   '----------------------------------------------
   
 End Function
+
+
+
+
+
+
+
+'==================================================================================================
+Function makeDDL(control As IRibbonControl)
+  
+  'èàóùäJén--------------------------------------
+  Const funcName As String = "Ctl_Ribbon.CreateTableInfo"
+  Call Library.startScript
+  Call init.Setting
+  Call Ctl_ProgressBar.showStart
+  runFlg = True
+  Call Library.showDebugForm(funcName & "=======================================")
+  '----------------------------------------------
+  
+  Select Case setVal("DBMS")
+    Case "MSAccess"
+    
+    Case "MySQL"
+      Call Ctl_MySQL.dbOpen
+      Call Ctl_MySQL.makeDDL
+      Call Ctl_MySQL.dbClose
+      
+    Case "PostgreSQL"
+      
+    Case "SQLServer"
+      
+    Case Else
+  End Select
+  
+  'èàóùèIóπ--------------------------------------
+  
+  Call Library.showDebugForm("=================================================================")
+  Call Ctl_ProgressBar.showEnd
+  Call Library.endScript
+  Call init.unsetting(True)
+  '----------------------------------------------
+  
+End Function

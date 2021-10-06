@@ -124,9 +124,10 @@ Function getDatabaseInfo(Optional ErImgflg As Boolean = False)
   Dim line As Long, endLine As Long
   Dim TblRecordset As ADODB.Recordset
   Dim tableName   As String
-  Dim lValues(2)         As Variant
+  Dim lValues(2) As Variant
 
-  Dim physicalTableName As String, logicalTableName As String, tableNote As String, TableCretateAt As String
+  Dim physicalTableName As String, logicalTableName As String
+  Dim tableNote As String, TableCretateAt As String
 
   '処理開始--------------------------------------
   'On Error GoTo catchError
@@ -139,7 +140,16 @@ Function getDatabaseInfo(Optional ErImgflg As Boolean = False)
   End If
   Call Library.showDebugForm(funcName & "==========================================")
   '----------------------------------------------
-
+  'ER図生成用設定
+  If ErImgflg = True Then
+    line = 1
+    sheetTmp.Range("A" & line) = "#"
+    sheetTmp.Range("B" & line) = "物理テーブル名"
+    sheetTmp.Range("C" & line) = "論理テーブル名"
+    sheetTmp.Range("D" & line) = "作成日"
+    line = line + 1
+  End If
+  
   'テーブル情報--------------------------------------------------------------------------------------
   queryString = " SELECT" & _
                 "   TABLE_NAME as TableName, TABLE_COMMENT as Comments, CREATE_TIME AS CREATETIME" & _
@@ -158,16 +168,9 @@ Function getDatabaseInfo(Optional ErImgflg As Boolean = False)
     physicalTableName = TblRecordset.Fields("TableName").Value
     Call Library.showDebugForm("physicalTableName", physicalTableName)
     
-    If Library.chkSheetExists(physicalTableName) = True Then
-      Set targetSheet = ThisWorkbook.Worksheets(physicalTableName)
-    Else
-      Call Ctl_Common.addSheet(physicalTableName)
-      Set targetSheet = ActiveSheet
-    End If
-    
-    If TblRecordset.Fields("Comments").Value Like "*<|>*" Then
-      logicalTableName = Split(TblRecordset.Fields("Comments").Value, "<|>")(0)
-      tableNote = Replace(Split(TblRecordset.Fields("Comments").Value, "<|>")(1), "<BR>", vbNewLine)
+    If TblRecordset.Fields("Comments").Value Like "*" & vbTab & "*" Then
+      logicalTableName = Split(TblRecordset.Fields("Comments").Value, vbTab)(0)
+      tableNote = Replace(Split(TblRecordset.Fields("Comments").Value, vbTab)(1), "\n", vbNewLine)
     Else
       tableNote = TblRecordset.Fields("Comments")
     End If
@@ -177,6 +180,14 @@ Function getDatabaseInfo(Optional ErImgflg As Boolean = False)
     Call Ctl_ProgressBar.showBar(thisAppName, TblRecordset.AbsolutePosition, TblRecordset.RecordCount, 1, 2, "カラム情報取得")
     
   If ErImgflg = False Then
+    'シート追加
+    If Library.chkSheetExists(physicalTableName) = True Then
+      Set targetSheet = ThisWorkbook.Worksheets(physicalTableName)
+    Else
+      Call Ctl_Common.addSheet(physicalTableName)
+      Set targetSheet = ActiveSheet
+    End If
+    
     targetSheet.Select
     targetSheet.Range("B5") = "exist"
     If targetSheet.Range(setVal("Cell_TableType")) = "" Then
@@ -193,16 +204,11 @@ Function getDatabaseInfo(Optional ErImgflg As Boolean = False)
     
     Else
       'ER図生成時の処理--------------------------
-'      Call Library.showDebugForm("AbsolutePosition", TblRecordset.AbsolutePosition)
-'      Call Library.showDebugForm("logicalTableName", logicalTableName)
-'      Call Library.showDebugForm("physicalTableName", physicalTableName)
-'      Call Library.showDebugForm("TableCretateAt", TableCretateAt)
-      
-      lValues(0) = physicalTableName
-      lValues(1) = logicalTableName
-      lValues(2) = TableCretateAt
-      tableList.Add TblRecordset.AbsolutePosition - 1, lValues
-      Erase lValues
+      sheetTmp.Range("A" & line) = TblRecordset.AbsolutePosition
+      sheetTmp.Range("B" & line) = physicalTableName
+      sheetTmp.Range("C" & line) = logicalTableName
+      sheetTmp.Range("D" & line) = TableCretateAt
+      line = line + 1
   End If
   
   TblRecordset.MoveNext
@@ -232,7 +238,7 @@ End Function
 Function getTableInfo()
   Dim line As Long, endLine As Long
   Dim TblRecordset As ADODB.Recordset
-  
+  Dim tableName   As String
   
   '処理開始--------------------------------------
   'On Error GoTo catchError
@@ -269,9 +275,9 @@ Function getTableInfo()
   targetSheet.Range(setVal("Cell_TableType")) = "マスターテーブル"
   targetSheet.Range(setVal("Cell_physicalTableName")) = TblRecordset.Fields("TableName")
   
-  If TblRecordset.Fields("Comments").Value Like "*<|>*" Then
-    targetSheet.Range(setVal("Cell_logicalTableName")) = Split(TblRecordset.Fields("Comments").Value, "<|>")(0)
-    targetSheet.Range(setVal("Cell_tableNote")) = Replace(Split(TblRecordset.Fields("Comments").Value, "<|>")(1), "<BR>", vbNewLine)
+  If TblRecordset.Fields("Comments").Value Like "*" & vbTab & "*" Then
+    targetSheet.Range(setVal("Cell_logicalTableName")) = Split(TblRecordset.Fields("Comments").Value, vbTab)(0)
+    targetSheet.Range(setVal("Cell_tableNote")) = Replace(Split(TblRecordset.Fields("Comments").Value, vbTab)(1), "\n", vbNewLine)
   Else
     targetSheet.Range(setVal("Cell_tableNote")) = TblRecordset.Fields("Comments")
   End If
@@ -280,7 +286,7 @@ Function getTableInfo()
   Call Ctl_ProgressBar.showBar(thisAppName, TblRecordset.AbsolutePosition, TblRecordset.RecordCount, 1, 2, "カラム情報取得")
   
   'カラム情報取得
-  Call Ctl_MySQL.getColumnInfo
+  Call Ctl_MySQL.getColumnInfo(tableName)
   
   Set TblRecordset = Nothing
   Set targetSheet = Nothing
@@ -359,11 +365,12 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
   ReDim lValues(Int(ClmRecordset.RecordCount - 1), 2)
   
   Do Until ClmRecordset.EOF
-      If ClmRecordset.Fields("Comments").Value Like "*<|>*" Then
-        logicalName = Split(ClmRecordset.Fields("Comments").Value, "<|>")(0)
-        Note = Replace(Split(ClmRecordset.Fields("Comments").Value, "<|>")(1), "<BR>", vbNewLine)
+      If ClmRecordset.Fields("Comments").Value Like "*" & vbTab & "*" Then
+        logicalName = Split(ClmRecordset.Fields("Comments").Value, vbTab)(0)
+        Note = Replace(Split(ClmRecordset.Fields("Comments").Value, vbTab)(1), "\n", vbNewLine)
       Else
         logicalName = ClmRecordset.Fields("Comments").Value
+        Note = ""
       End If
       physicalName = ClmRecordset.Fields("ColumName").Value
       
@@ -389,9 +396,9 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
       End If
       targetSheet.Range(setVal("Cell_Default") & line) = ClmRecordset.Fields("ColumnDefault").Value
       
-      If ClmRecordset.Fields("Comments").Value Like "*<|>*" Then
-        targetSheet.Range(setVal("Cell_logicalName") & line) = Split(ClmRecordset.Fields("Comments").Value, "<|>")(0)
-        targetSheet.Range(setVal("Cell_Note") & line) = Replace(Split(ClmRecordset.Fields("Comments").Value, "<|>")(1), "<BR>", vbNewLine)
+      If ClmRecordset.Fields("Comments").Value Like "*" & vbTab & "*" Then
+        targetSheet.Range(setVal("Cell_logicalName") & line) = Split(ClmRecordset.Fields("Comments").Value, vbTab)(0)
+        targetSheet.Range(setVal("Cell_Note") & line) = Replace(Split(ClmRecordset.Fields("Comments").Value, vbTab)(1), "\n", vbNewLine)
       Else
         targetSheet.Range(setVal("Cell_logicalName") & line) = ClmRecordset.Fields("Comments").Value
       End If
@@ -409,7 +416,7 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
       
       
       '行の高さ調整
-      LFCount = UBound(Split(targetSheet.Range(setVal("Cell_Note") & line).Value, vbNewLine)) + 1
+      LFCount = UBound(Split(targetSheet.Range(setVal("Cell_Note") & line).Value, vbNewLine)) + 2
       If LFCount > 0 Then
         targetSheet.Rows(line & ":" & line).RowHeight = setVal("defaultRowHeight") * LFCount
       End If
@@ -611,7 +618,7 @@ Function makeDDL()
   Dim tableName As String
   Dim queryColumn As String, queryColumnTmp As String
   Dim colMaxLen As Long
-  Dim Copyright As String
+  Dim strHeader As String, strCopyright As String
   
   '処理開始--------------------------------------
   'On Error GoTo catchError
@@ -638,16 +645,18 @@ Function makeDDL()
   colMaxLen = WorksheetFunction.Max(targetSheet.Range(targetSheet.Range(setVal("Cell_colMaxLen") & startLine).Address & ":" & targetSheet.Range(setVal("Cell_colMaxLen") & endLine).Address))
   
   'ヘッダー情報(Copyright)-------------------------------------------------------------------------
-  Copyright = "/* -------------------------------------------------------------------------------" & vbNewLine & _
+  strHeader = "/* -------------------------------------------------------------------------------" & vbNewLine & _
               "TABLE NAME ：" & targetSheet.Range(setVal("Cell_logicalTableName")) & " [" & tableName & "]" & vbNewLine & _
-              "CREATE BY" & targetSheet.Range("") & vbNewLine & _
+              "CREATE BY  ：" & targetSheet.Range("U2") & vbNewLine & _
               "CREATE DATA：" & Format(Now(), "yyyy/mm/dd hh:nn:ss") & vbNewLine & _
+              "" & vbNewLine & _
                thisAppName & " [" & thisAppVersion & "]             Copyright (c) 2021 B.Koizumi" & vbNewLine & _
-              "------------------------------------------------------------------------------- */" & vbNewLine & vbNewLine & vbNewLine
+              "------------------------------------------------------------------------------- */" & vbNewLine & vbNewLine
   
   
   'カラム情報--------------------------------------------------------------------------------------
-  queryString = " CREATE TABLE " & tableName & " ("
+  queryString = "DROP TABLE IF EXISTS " & tableName & ";" & vbNewLine & vbNewLine
+  queryString = queryString & "CREATE TABLE " & tableName & " ("
   For line = startLine To endLine
     If line = startLine Then
       queryColumn = "   "
@@ -670,13 +679,25 @@ Function makeDDL()
     'NULL制約
     If targetSheet.Range(setVal("Cell_Null") & line) <> "" Then
       queryColumn = queryColumn & "     " & targetSheet.Range(setVal("Cell_Null") & line).Text
-    Else
-      queryColumn = queryColumn & " DEFAULT NULL"
     End If
     
+    '初期値
+    If targetSheet.Range(setVal("Cell_Default") & line) <> "" Then
+      If targetSheet.Range(setVal("Cell_Default") & line) = "AUTO_INCREMENT" Then
+        queryColumn = queryColumn & " " & targetSheet.Range(setVal("Cell_Default") & line)
+      
+      Else
+        queryColumn = queryColumn & " DEFAULT " & targetSheet.Range(setVal("Cell_Default") & line)
+      End If
+    ElseIf targetSheet.Range(setVal("Cell_Null") & line) = "" Then
+      queryColumn = queryColumn & " DEFAULT NULL"
+    
+    End If
+   
+    '備考
     If targetSheet.Range(setVal("Cell_Note") & line) <> "" Then
-      queryColumn = queryColumn & " COMMENT '" & targetSheet.Range(setVal("Cell_logicalName") & line) & "<|>"
-      queryColumn = queryColumn & Replace(targetSheet.Range(setVal("Cell_Note") & line), vbNewLine, "<BR>") & "'"
+      queryColumn = queryColumn & " COMMENT '" & targetSheet.Range(setVal("Cell_logicalName") & line) & vbTab
+      queryColumn = queryColumn & Replace(targetSheet.Range(setVal("Cell_Note") & line), vbLf, "\n") & "'"
     Else
       queryColumn = queryColumn & " COMMENT '" & targetSheet.Range(setVal("Cell_logicalName") & line) & "'"
     End If
@@ -705,10 +726,20 @@ Function makeDDL()
   
   
   
-  queryColumnTmp = targetSheet.Range(setVal("Cell_logicalTableName")) & "<|>" & targetSheet.Range(setVal("Cell_tableNote"))
+  queryColumnTmp = targetSheet.Range(setVal("Cell_logicalTableName")) & vbTab & targetSheet.Range(setVal("Cell_tableNote"))
   queryString = queryString & vbNewLine & ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='" & queryColumnTmp & "'"
   
-  queryString = Copyright & queryString
+  'Copyright情報---------------------------------
+'  strCopyright = vbNewLine & vbNewLine & vbNewLine & _
+'              "/* -------------------------------------------------------------------------------" & vbNewLine & _
+'              "" & vbNewLine & _
+'              "" & vbNewLine & _
+'               thisAppName & " [" & thisAppVersion & "]             Copyright (c) 2021 B.Koizumi" & vbNewLine & _
+'              "------------------------------------------------------------------------------- */"
+  
+  
+  
+  queryString = strHeader & queryString
   Call Library.outputText(queryString, setVal("outputDir") & "\CREATE_TABLE_" & targetSheet.Range(setVal("Cell_physicalTableName")) & ".sql")
   
   

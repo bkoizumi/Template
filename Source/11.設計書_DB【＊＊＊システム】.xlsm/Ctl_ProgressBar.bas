@@ -27,7 +27,7 @@ Public Function showStart()
     .StartUpPosition = 1
 '    .Top = Application.Top + 10
 '    .Left = Application.Left + 120
-    .Caption = myMsg1
+    .Caption = thisAppName
     
     
     '親進捗バー------------------------------------------------------------------------------------

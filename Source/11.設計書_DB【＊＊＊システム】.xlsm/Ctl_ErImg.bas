@@ -25,6 +25,9 @@ Function showUserForm()
   End If
   Call Library.showDebugForm(funcName & "===========================================")
   '----------------------------------------------
+  sheetTmp.Select
+  Call Library.delSheetData
+  
   sheetERImage.Select
 
   Set tableList = Nothing
@@ -33,29 +36,14 @@ Function showUserForm()
   Ctl_MySQL.dbOpen
   Call Ctl_MySQL.getDatabaseInfo(True)
   
-  
+  endLine = sheetTmp.Cells(Rows.count, 1).End(xlUp).Row
   With Frm_TableList
     .StartUpPosition = 1
-    With .ListView1
-      .View = lvwReport
-      .LabelEdit = lvwManual
-      .HideSelection = False
-      .AllowColumnReorder = True
-      .FullRowSelect = True
-      .Gridlines = True
-      .ColumnHeaders.Add , "_physicalTableName", "物理テーブル名", 150
-      .ColumnHeaders.Add , "_logicalTableName", "論理テーブル名", 150
-      .ColumnHeaders.Add , "_TableCretateAt", "作成日", 120, lvwColumnRight
-
-  For tableListCnt = 0 To tableList.count - 1
-'    Call Library.showDebugForm(tableListCnt & "logicalTableName", tableList(tableListCnt)(0))
-'    Call Library.showDebugForm(tableListCnt & "physicalTableName", tableList(tableListCnt)(1))
-'    Call Library.showDebugForm(tableListCnt & "TableCretateAt", tableList(tableListCnt)(2))
-
-    .ListItems.Add Text:=tableList(tableListCnt)(0)
-    .ListItems(tableListCnt + 1).SubItems(1) = tableList(tableListCnt)(1)
-    .ListItems(tableListCnt + 1).SubItems(2) = tableList(tableListCnt)(2)
-  Next
+    With .ListBox1
+      .ColumnHeads = True
+      .ColumnCount = 4
+      .ColumnWidths = "20;150;150;120"
+      .RowSource = "Tmp!A2:D" & endLine
     End With
     .Show
   End With
@@ -215,13 +203,13 @@ Function makeColumnList(physicalName As String)
   
   For line = 0 To UBound(lValues)
     Call Library.showDebugForm("lValues", lValues(line, 0))
-      If useLogicalName = True Then
+      If setVal("useLogicalName") = True Then
         columnName = lValues(line, 0)
       Else
         columnName = lValues(line, 1)
       End If
       
-      If useLogicalName = True Then
+      If setVal("useLogicalName") = True Then
         columnName = lValues(line, 0)
       Else
         columnName = lValues(line, 1)

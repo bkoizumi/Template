@@ -3452,8 +3452,19 @@ Function setColumnWidth()
       End If
     Next
   End If
-  
-
 End Function
 
-
+'**************************************************************************************************
+' * setValオブジェクトとRangeに値設定
+' *
+' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
+'**************************************************************************************************
+Function setValandRange(keyName As String, val As String)
+  Range(keyName) = val
+  If setVal Is Nothing Then
+    Call init.Setting
+  Else
+    setVal(keyName) = val
+  End If
+  Call Library.showDebugForm(keyName, val)
+End Function

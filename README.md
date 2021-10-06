@@ -1,11 +1,17 @@
 # Addin For Excel Template
 
+
+## 動作環境
+* Windows 10 (64bit)
+* Microsoft Office 2016 (32/64bit)
+* Microsoft 365 (64bit)
+
 ## 設計書
 
 ## DB設計書
 
 ### 対応DB
-* MSAccess
+* MSAccessOracle VM VirtualBox
 * MySQL
 * PostgreSQL
 * SQLServer

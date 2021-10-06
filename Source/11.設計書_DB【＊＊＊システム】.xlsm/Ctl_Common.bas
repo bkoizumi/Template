@@ -253,7 +253,7 @@ Function insertRow()
   
   Rows(line & ":" & line).Insert Shift:=xlDown
   
-  sheetCopy.Rows("48:48").copy
+  sheetCopy.Rows("46:46").copy
   targetSheet.Range("A" & line).Select
   ActiveSheet.Paste
   targetSheet.Range("B" & line) = "insert"

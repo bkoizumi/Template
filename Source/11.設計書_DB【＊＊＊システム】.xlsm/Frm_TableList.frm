@@ -51,23 +51,25 @@ Private Sub Submit_Click()
   useLogicalName = useLogicalName.Value
   usePhysicalName = usePhysicalName.Value
   
-  setVal.Add "useImage", CStr(useImage.Value)
+  Call Library.setValandRange("useLogicalName", CStr(useLogicalName.Value))
+  Call Library.setValandRange("usePhysicalName", CStr(usePhysicalName.Value))
+  Call Library.setValandRange("useImage", CStr(useImage.Value))
   
-  With ListView1
-  For i = 1 To .ListItems.count
-    If .ListItems(i).Selected Then
-      Call Library.showDebugForm("リスト", .ListItems(i).Text)
-      Call Library.showDebugForm("リスト", .ListItems(i).SubItems(1))
+  With ListBox1
+  For i = 0 To .ListCount - 1
+    If .Selected(i) = True Then
+'      Call Library.showDebugForm("リスト", .list(i, 0))
+'      Call Library.showDebugForm("リスト", .list(i, 1))
       
-      Call Ctl_ErImg.deleteImages(.ListItems(i).Text)
+      Call Ctl_ErImg.deleteImages(.list(i, 1))
       If useLogicalName.Value = True Then
-        Call Ctl_ErImg.makeTable(.ListItems(i).Text)
+        Call Ctl_ErImg.makeTable(.list(i, 1))
       Else
-        Call Ctl_ErImg.makeTable(.ListItems(i).SubItems(1))
+        Call Ctl_ErImg.makeTable(.list(i, 2))
       End If
       
-      Call Ctl_ErImg.makeColumnList(.ListItems(i).Text)
-      Call Ctl_ErImg.copy(.ListItems(i).Text)
+      Call Ctl_ErImg.makeColumnList(.list(i, 1))
+      Call Ctl_ErImg.copy(.list(i, 1))
     End If
   Next i
 End With

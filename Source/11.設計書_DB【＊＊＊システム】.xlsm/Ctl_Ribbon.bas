@@ -437,6 +437,29 @@ Function makeERImage(control As IRibbonControl)
 
 End Function
 
+'==================================================================================================
+'ER図用コネクター生成
+Function makeER_ConnectLine(control As IRibbonControl)
+  '処理開始--------------------------------------
+  Const funcName As String = "Ctl_Ribbon.getDatabaseInfo"
+  Call Library.startScript
+  Call init.Setting
+  Call Ctl_ProgressBar.showStart
+  runFlg = True
+  Call Library.showDebugForm(funcName & "=========================================")
+  '----------------------------------------------
+   
+  Call Ctl_ErImg.ConnectLine(CStr(control.ID))
+  
+  
+  '処理終了--------------------------------------
+  Call Library.showDebugForm("=================================================================")
+  Call Ctl_ProgressBar.showEnd
+  Call Library.endScript
+  Call init.unsetting(True)
+  '----------------------------------------------
+
+End Function
 
 
 

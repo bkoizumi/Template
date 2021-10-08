@@ -200,7 +200,7 @@ Function getDatabaseInfo(Optional ErImgflg As Boolean = False)
     targetSheet.Range(setVal("Cell_tableNote")) = tableNote
 
     'ÉJÉâÉÄèÓïÒéÊìæ
-    Call Ctl_MySQL.getColumnInfo(tableName)
+    Call Ctl_MySQL.getColumnInfo(physicalTableName)
     
     Else
       'ERê}ê∂ê¨éûÇÃèàóù--------------------------
@@ -362,7 +362,9 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
   
   Set ClmRecordset = New ADODB.Recordset
   ClmRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
-  ReDim lValues(Int(ClmRecordset.RecordCount - 1), 2)
+  If ErImgflg = True Then
+    ReDim lValues(Int(ClmRecordset.RecordCount - 1), 2)
+  End If
   
   Do Until ClmRecordset.EOF
       If ClmRecordset.Fields("Comments").Value Like "*" & vbTab & "*" Then
@@ -375,9 +377,9 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
       physicalName = ClmRecordset.Fields("ColumName").Value
       
       If ClmRecordset.Fields("PrimaryKey").Value = "PRI" Then
-        PK = 1
+        PK = "Åü"
       Else
-        PK = 0
+        PK = "Å@"
       End If
       
       

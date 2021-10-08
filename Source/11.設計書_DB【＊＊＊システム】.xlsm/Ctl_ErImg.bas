@@ -36,21 +36,17 @@ Function showUserForm()
   Ctl_MySQL.dbOpen
   Call Ctl_MySQL.getDatabaseInfo(True)
   
-  endLine = sheetTmp.Cells(Rows.count, 1).End(xlUp).Row
+  
   With Frm_TableList
     .StartUpPosition = 1
-    With .ListBox1
-      .ColumnHeads = True
-      .ColumnCount = 4
-      .ColumnWidths = "20;150;150;120"
-      .RowSource = "Tmp!A2:D" & endLine
-    End With
     .Show
   End With
     
   Set tableList = Nothing
 
   sheetERImage.Select
+  ActiveWindow.Zoom = 100
+  
   '処理終了--------------------------------------
   Ctl_MySQL.dbClose
   Application.GoTo Reference:=Range("A1"), Scroll:=True
@@ -93,8 +89,11 @@ Function deleteImages(targetShapeName As String)
   fileCnt = 1
   fileAllCnt = ActiveSheet.Shapes.count
   For Each objShp In ActiveSheet.Shapes
-    'If objShp.Name Like "ERImg-*" Then
     If objShp.Name = "ERImg-" & targetShapeName Then
+      fileName = objShp.Name
+      Call Library.showDebugForm("delete", objShp.Name)
+      objShp.Delete
+    ElseIf objShp.Name Like "ERImg_Line*" Then
       fileName = objShp.Name
       Call Library.showDebugForm("delete", objShp.Name)
       objShp.Delete
@@ -204,15 +203,15 @@ Function makeColumnList(physicalName As String)
   For line = 0 To UBound(lValues)
     Call Library.showDebugForm("lValues", lValues(line, 0))
       If setVal("useLogicalName") = True Then
-        columnName = lValues(line, 0)
+        columnName = lValues(line, 2) & lValues(line, 0)
       Else
-        columnName = lValues(line, 1)
+        columnName = lValues(line, 2) & lValues(line, 1)
       End If
       
       If setVal("useLogicalName") = True Then
-        columnName = lValues(line, 0)
+        columnName = lValues(line, 2) & lValues(line, 0)
       Else
-        columnName = lValues(line, 1)
+        columnName = lValues(line, 2) & lValues(line, 1)
       End If
   
     If Selection.ShapeRange(1).TextFrame2.TextRange.Characters.Text = "" Then
@@ -295,6 +294,7 @@ Function copy(tableName As String)
     End With
   
   Else
+    Call Library.waitTime(100)
     ActiveSheet.Paste
   End If
   Selection.Name = "ERImg-" & tableName
@@ -316,4 +316,147 @@ Function copy(tableName As String)
 catchError:
   Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
+
+
+'==================================================================================================
+Function ConnectLine(lineType As String)
+  Dim line As Long, endLine As Long, colLine As Long, endColLine As Long
+  Dim rowLine As Long
+  Dim slctImg, slctImgs(), slctImgCnt As Integer
+  Dim counter As String
+  Dim startCell As String, endCell As String
+  Dim ERImg_LineSName As String, ERImg_LineEName As String
+  
+  Dim startImg As String, endImg As String
+  
+  '処理開始--------------------------------------
+  'On Error GoTo catchError
+  Const funcName As String = "Ctl_ErImg.conLine"
+
+  'runFlg = True
+  If runFlg = False Then
+    Call Library.startScript
+    Call init.Setting
+'    Call Ctl_ProgressBar.showStart
+'    Call Library.showDebugForm("runFlg", runFlg)
+'    PrgP_Cnt = 0
+  End If
+'  Call Library.showDebugForm(funcName & "==================================================")
+  '----------------------------------------------
+  Call Library.showDebugForm("lineType", lineType)
+  
+'  ReDim slctImgs(Selection.count - 1)
+'  slctImgCnt = 0
+'  For Each slctImg In Selection
+'    Call Library.showDebugForm("slctImg", slctImg.Name)
+'    slctImgs(slctImgCnt) = slctImg.Name
+'    If slctImgCnt = 0 Then
+'      startCell = ActiveSheet.Shapes(slctImg.Name).TopLeftCell.Offset(, -1).Address
+'    Else
+'      endCell = ActiveSheet.Shapes(slctImg.Name).TopLeftCell.Offset(, -1).Address
+'    End If
+'
+'    slctImgCnt = slctImgCnt + 1
+'  Next
+'  Call Library.showDebugForm("startCell", startCell)
+'  Call Library.showDebugForm("endCell  ", endCell)
+  
+  If typeName(ActiveCell) = "Range" Then
+    startCell = ActiveCell.Address
+    endCell = ActiveCell.Offset(, 3).Address
+  Else
+    startCell = "C4"
+    endCell = "F4"
+  End If
+  counter = ActiveSheet.Shapes.count + 1
+  
+  Select Case lineType
+    Case "ERLine1"
+      startImg = "ERImg_1"
+      endImg = "ERImg_1"
+    
+    Case "ERLine2"
+      startImg = "ERImg_1"
+      endImg = "ERImg_N"
+    
+    Case "ERLine3"
+      startImg = "ERImg_1"
+      endImg = "ERImg_0"
+    
+    Case "ERLine4"
+      startImg = "ERImg_1"
+      endImg = "ERImg_1N"
+    
+    Case "ERLine5"
+      startImg = "ERImg_1N"
+      endImg = "ERImg_1N"
+    
+    Case "ERLine6"
+      startImg = "ERImg_01"
+      endImg = "ERImg_1N"
+    
+    Case Else
+  End Select
+  
+  
+  
+  sheetSetting.Select
+  sheetSetting.Shapes.Range(Array(startImg)).Select
+  Selection.copy
+
+  sheetERImage.Select
+  Range(startCell).Select
+  sheetERImage.Pictures.Paste.Select
+  Call Library.waitTime(100)
+  ERImg_LineSName = "ERImg_LineS_" & counter
+  Selection.Name = ERImg_LineSName
+  
+  sheetSetting.Select
+  sheetSetting.Shapes.Range(Array(endImg)).Select
+  Call Library.waitTime(100)
+  Selection.copy
+  
+  sheetERImage.Select
+  Range(endCell).Select
+  sheetERImage.Pictures.Paste.Select
+  Call Library.waitTime(100)
+  ERImg_LineEName = "ERImg_LineE_" & counter
+  Selection.Name = ERImg_LineEName
+  Selection.ShapeRange.Flip msoFlipHorizontal
+
+  ActiveSheet.Shapes.AddConnector(msoConnectorElbow, 251, 92, 408, 128).Select
+  Selection.Name = "ERImg_Line_" & counter
+  
+  Selection.ShapeRange.ConnectorFormat.BeginConnect ActiveSheet.Shapes(ERImg_LineSName), 4
+  Selection.ShapeRange.ConnectorFormat.EndConnect ActiveSheet.Shapes(ERImg_LineEName), 4
+  
+'  For slctImgCnt = 0 To UBound(slctImgs)
+'    slctImg = slctImgs(slctImgCnt)
+'    Call Library.showDebugForm("slctImg", slctImg)
+'    If slctImgCnt = 0 Then
+'      ActiveSheet.Shapes.Range(Array("ERImg_LineS_" & counter, slctImg)).Select
+'    ElseIf slctImgCnt = 1 Then
+'      ActiveSheet.Shapes.Range(Array("ERImg_LineE_" & counter, slctImg)).Select
+'    End If
+'    Selection.ShapeRange.Group.Select
+'    Selection.Name = "ERImg_" & Selection.Name
+'  Next
+  
+  
+
+  '処理終了--------------------------------------
+'  Call Library.showDebugForm("=================================================================")
+  If runFlg = False Then
+    Call Ctl_ProgressBar.showEnd
+    Call Library.endScript
+    Call init.unsetting
+  End If
+  '----------------------------------------------
+
+  Exit Function
+'エラー発生時------------------------------------
+catchError:
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
+End Function
+
 

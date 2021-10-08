@@ -145,23 +145,27 @@ Function makeTblList()
     sheetName = sheetList.Name
     
     Select Case sheetName
-      Case "設定-MySQL", "設定-ACC", "Notice", "DataType", "コピー用", "表紙", "TBLリスト", "変更履歴", "ER図"
+      Case "設定-MySQL", "設定-ACC", "Notice", "DataType", "コピー用", "表紙", "TBLリスト", "変更履歴", "ER図", "Tmp"
       Case Else
         Call Library.showDebugForm("sheetName", sheetName)
     
         sheetTblList.Range("B" & line).FormulaR1C1 = "=ROW()-5"
+        
+        '分類
         sheetTblList.Range("C" & line) = Sheets(sheetName).Range("C2")
-        sheetTblList.Range(setVal("Cell_dateType") & line) = Sheets(sheetName).Range("D6")
+        
+        '説明
+        sheetTblList.Range(setVal("Cell_dateType") & line) = Sheets(sheetName).Range("E6")
       
         '論理テーブル名
-        If Sheets(sheetName).Range("D5") <> "" Then
+        If Sheets(sheetName).Range(setVal("Cell_logicalTableName")) <> "" Then
           With sheetTblList.Range(setVal("Cell_logicalName") & line)
-            .Value = Sheets(sheetName).Range("D5")
+            .Value = Sheets(sheetName).Range(setVal("Cell_logicalTableName"))
             .Select
             .Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=sheetName & "!" & "A9"
             .Font.Color = RGB(0, 0, 0)
             .Font.Underline = False
-            .Font.Size = 10
+            .Font.Size = 9
             .Font.Name = "メイリオ"
           End With
         End If
@@ -173,7 +177,7 @@ Function makeTblList()
           .Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=sheetName & "!" & "A9"
           .Font.Color = RGB(0, 0, 0)
           .Font.Underline = False
-          .Font.Size = 10
+          .Font.Size = 9
           .Font.Name = "メイリオ"
         End With
         

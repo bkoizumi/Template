@@ -15,7 +15,6 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
-
 '**************************************************************************************************
 ' * 初期設定
 ' *
@@ -23,10 +22,33 @@ Option Explicit
 '**************************************************************************************************
 Private Sub UserForm_Initialize()
   Dim ListIndex As Integer
-  Dim line As Long, endLine As Long
+  Dim line As Long, endLine As Long, i As Long
+  Dim objShp As Shape
   
-  usePhysicalName.Value = True
-  useImage.Value = True
+  If setVal("usePhysicalName") = True Then
+    usePhysicalName.Value = True
+  Else
+    useLogicalName.Value = True
+  End If
+  useImage.Value = setVal("useImage")
+  
+  With ListBox1
+    .ColumnHeads = True
+    .ColumnCount = 4
+    .ColumnWidths = "20;150;150;120"
+    .RowSource = "Tmp!A2:D" & sheetTmp.Cells(Rows.count, 1).End(xlUp).Row
+    
+    For i = 0 To .ListCount - 1
+      For Each objShp In ActiveSheet.Shapes
+        Call Library.showDebugForm("リスト", .list(i, 1))
+        Call Library.showDebugForm("リスト", .list(i, 0))
+        If objShp.Name = "ERImg-" & .list(i, 1) Then
+          .Selected(i) = True
+        End If
+      Next
+    Next
+  End With
+
 End Sub
 
 '**************************************************************************************************

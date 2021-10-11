@@ -11,9 +11,11 @@ Dim queryString As String
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
 '==================================================================================================
-Function dbOpen()
-  On Error GoTo catchError
+Function dbOpen(Optional NoticeFlg As Boolean = True)
   Const funcName As String = "Ctl_MySQL.dbOpen"
+  
+  On Error GoTo catchError
+  
   
   
   If isDBOpen = True Then
@@ -37,7 +39,10 @@ Function dbOpen()
 catchError:
   isDBOpen = False
   Call Library.showDebugForm("isDBOpen", isDBOpen)
-  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
+  If NoticeFlg = True Then
+    
+    Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
+  End If
 End Function
 
 '==================================================================================================
@@ -101,6 +106,8 @@ End Function
 '==================================================================================================
 Function runQuery(queryString As String)
   Dim runRecordset As ADODB.Recordset
+  
+  Const funcName As String = "Ctl_MySQL.runQuery"
 
   On Error GoTo catchError
   
@@ -110,10 +117,22 @@ Function runQuery(queryString As String)
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  If Err.Number = -2147217900 Then
-    Call Library.showNotice(502, funcName & " 構文エラー" & vbNewLine & queryString, True)
+  Dim errId, errMeg, meg
+  errId = Err.Number
+  errMeg = Err.Description
+  
+  Call Library.showDebugForm(funcName, errId & "：" & errMeg)
+  If errId = -2147217900 Then
+    meg = " 構文エラー" & vbNewLine
+    meg = meg & "-------------------------------------------------" & vbNewLine
+    meg = meg & errMeg & vbNewLine
+    meg = meg & "-------------------------------------------------" & vbNewLine & vbNewLine
+    meg = meg & queryString & vbNewLine
+
+    Call Library.showNotice(502, funcName & meg, True)
+  
   Else
-    Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+    Call Library.showNotice(400, funcName & " [" & errId & "]" & errMeg, True)
   End If
 End Function
 
@@ -222,14 +241,14 @@ Function getDatabaseInfo(Optional ErImgflg As Boolean = False)
   End If
   
   '処理終了--------------------------------------
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   '----------------------------------------------
   
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
@@ -243,6 +262,8 @@ Function getTableInfo()
   '処理開始--------------------------------------
   'On Error GoTo catchError
   Const funcName As String = "Ctl_MySQL.getTableInfo"
+  PrgP_Max = 4
+  PrgP_Cnt = 2
   Call Library.showDebugForm(funcName & "==========================================")
   '----------------------------------------------
   tableName = ActiveSheet.Range(setVal("Cell_physicalTableName"))
@@ -263,7 +284,6 @@ Function getTableInfo()
   TblRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
   PrgP_Max = TblRecordset.RecordCount
     
-  
   If Library.chkSheetExists(TblRecordset.Fields("TableName").Value) = True Then
     Set targetSheet = ThisWorkbook.Worksheets(TblRecordset.Fields("TableName").Value)
   Else
@@ -283,7 +303,7 @@ Function getTableInfo()
   End If
   
   PrgP_Cnt = TblRecordset.AbsolutePosition
-  Call Ctl_ProgressBar.showBar(thisAppName, TblRecordset.AbsolutePosition, TblRecordset.RecordCount, 1, 2, "カラム情報取得")
+  Call Ctl_ProgressBar.showBar(thisAppName, PrgP_Cnt, PrgP_Max, TblRecordset.AbsolutePosition, TblRecordset.RecordCount, "カラム情報取得")
   
   'カラム情報取得
   Call Ctl_MySQL.getColumnInfo(tableName)
@@ -293,14 +313,14 @@ Function getTableInfo()
 
 
   '処理終了--------------------------------------
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+'  Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   '----------------------------------------------
   
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
@@ -313,8 +333,10 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
   Dim LFCount As Long, IndexLine As Long
   Dim ColCnt As Long
   Dim searchColCell As Range
-  Dim IndexName As String, oldIndexName As String, IndexColName As String
+  Dim IndexName As String, IndexColName As String
   Dim ER_LogicalName As String, ER_PhysicalName As String
+  Dim searchWord As Range
+  
   
   'ER図生成時の処理用
   Dim logicalName As String, physicalName As String, PK As String, Note As String
@@ -350,6 +372,7 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
                 "   , IS_NULLABLE                          AS Nullable " & _
                 "   , COLUMN_DEFAULT                       AS ColumnDefault " & _
                 "   , COLUMN_COMMENT                       AS Comments " & _
+                "   , EXTRA                                AS EXTRA " & _
                 " FROM" & _
                 "   information_schema.Columns c " & _
                 " WHERE" & _
@@ -382,21 +405,25 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
         PK = "　"
       End If
       
-      
     If ErImgflg = False Then
+      'ER図生成時の処理でない--------------------
       targetSheet.Range("C" & line) = ColCnt
       targetSheet.Range(setVal("Cell_logicalName") & line) = logicalName
       targetSheet.Range(setVal("Cell_physicalName") & line) = physicalName
       targetSheet.Range(setVal("Cell_Note") & line) = Note
-      
-      
       targetSheet.Range(setVal("Cell_dateType") & line) = ClmRecordset.Fields("DataType").Value
       targetSheet.Range(setVal("Cell_digits") & line) = ClmRecordset.Fields("Length").Value
+      
       targetSheet.Range(setVal("Cell_PK") & line) = PK
       If ClmRecordset.Fields("Nullable").Value = "NO" Then
         targetSheet.Range(setVal("Cell_Null") & line) = 1
       End If
+      
+      '初期値
       targetSheet.Range(setVal("Cell_Default") & line) = ClmRecordset.Fields("ColumnDefault").Value
+      If ClmRecordset.Fields("EXTRA").Value <> "" Then
+        targetSheet.Range(setVal("Cell_Default") & line) = targetSheet.Range(setVal("Cell_Default") & line) & Replace(ClmRecordset.Fields("EXTRA").Value, "DEFAULT_GENERATED", "")
+      End If
       
       If ClmRecordset.Fields("Comments").Value Like "*" & vbTab & "*" Then
         targetSheet.Range(setVal("Cell_logicalName") & line) = Split(ClmRecordset.Fields("Comments").Value, vbTab)(0)
@@ -404,18 +431,14 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
       Else
         targetSheet.Range(setVal("Cell_logicalName") & line) = ClmRecordset.Fields("Comments").Value
       End If
-      targetSheet.Range(setVal("Cell_physicalName") & line) = ClmRecordset.Fields("ColumName").Value
-      targetSheet.Range(setVal("Cell_dateType") & line) = ClmRecordset.Fields("DataType").Value
-      targetSheet.Range(setVal("Cell_digits") & line) = ClmRecordset.Fields("Length").Value
+      
       If ClmRecordset.Fields("PrimaryKey").Value = "PRI" Then
-        targetSheet.Range(setVal("Cell_PK") & line) = 1
+        targetSheet.Range(setVal("Cell_PK") & line) = Application.WorksheetFunction.Max(targetSheet.Range(setVal("Cell_PK") & startLine & ":" & setVal("Cell_PK") & line)) + 1
+
       End If
       If ClmRecordset.Fields("Nullable").Value = "NO" Then
         targetSheet.Range(setVal("Cell_Null") & line) = 1
       End If
-      targetSheet.Range(setVal("Cell_Default") & line) = ClmRecordset.Fields("ColumnDefault").Value
-      
-      
       
       '行の高さ調整
       LFCount = UBound(Split(targetSheet.Range(setVal("Cell_Note") & line).Value, vbNewLine)) + 2
@@ -443,32 +466,37 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
   Loop
   Set ClmRecordset = Nothing
   
+  
+  
+  
   'インデックス情報取得----------------------------------------------------------------------------
+  ColCnt = 1
   If PrgP_Max = 0 Then
     PrgP_Cnt = 2
   End If
   If ErImgflg = False Then
-    IndexLine = Ctl_Common.chkIndexRow
+    Call Ctl_Common.chkRowStartLine
+    IndexLine = setLine("indexStart")
+    
     queryString = "SHOW INDEX FROM " & tableName & ";"
     Call Library.showDebugForm("QueryString", queryString)
     
     Set ClmRecordset = New ADODB.Recordset
     ClmRecordset.Open queryString, dbCon, adOpenKeyset, adLockReadOnly
     
-    line = IndexLine
-    ColCnt = -1
     Do Until ClmRecordset.EOF
       IndexName = ClmRecordset.Fields("Key_name").Value
-      If oldIndexName <> IndexName Then
-        line = line + 1
-        ColCnt = ColCnt + 1
-        Call Ctl_Common.addRow(line + 1)
-      End If
+      Call Library.showDebugForm("IndexName", IndexName)
       
-      If IndexName = "PRIMARY" Then
-        targetSheet.Range("C" & line) = "PK"
+      Set searchWord = targetSheet.Range("D" & setLine("indexStart") & ":D" & setLine("indexStart") + 10).Find(What:=IndexName, LookAt:=xlWhole, SearchOrder:=xlByRows)
+      If searchWord Is Nothing And IndexName = "PRIMARY" Then
+        line = IndexLine
+        
+      ElseIf searchWord Is Nothing Then
+        line = IndexLine + 1
+        ColCnt = ColCnt + 1
       Else
-        targetSheet.Range("C" & line) = ColCnt
+        line = searchWord.Row
       End If
       
       targetSheet.Range("D" & line) = IndexName
@@ -485,18 +513,18 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
         targetSheet.Range("E" & line) = "NONUNIQUE"
       End If
       
+      'カラム名のセルを検索
       Set searchColCell = Columns("E:E").Find(What:=ClmRecordset.Fields("Column_name").Value)
       If ColCnt <= 10 Then
-        Cells(searchColCell.Row, 9 + ColCnt) = ClmRecordset.Fields("Seq_in_index").Value
+        Cells(searchColCell.Row, 7 + ColCnt).Select
+        Cells(searchColCell.Row, 7 + ColCnt) = ClmRecordset.Fields("Seq_in_index").Value
         
-        IndexColName = Library.getColumnName(9 + ColCnt)
-        Columns(IndexColName & ":" & IndexColName).EntireColumn.Hidden = False
+        IndexColName = Library.getColumnName(7 + ColCnt)
       End If
       
       Call Ctl_ProgressBar.showBar(thisAppName, PrgP_Cnt, PrgP_Max, ClmRecordset.AbsolutePosition, ClmRecordset.RecordCount, "インデックス情報取得")
+      Set searchWord = Nothing
       Set searchColCell = Nothing
-      oldIndexName = IndexName
-  
   
       ClmRecordset.MoveNext
     Loop
@@ -508,14 +536,14 @@ Function getColumnInfo(tableName As String, Optional ErImgflg As Boolean = False
 
   
   '処理終了--------------------------------------
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A50"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   '----------------------------------------------
 
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 '==================================================================================================
@@ -545,6 +573,11 @@ Function CreateTable()
   tableName = Range(setVal("Cell_physicalTableName"))
   
   If Range("B5") = "" Then
+  
+  '新規作成----------------------------------
+  ElseIf Range("B5") = "newTable" Then
+    queryString = Ctl_MySQL.makeDDL(False)
+      
   
   ElseIf Range("B5") = "exist" Then
     '既存テーブルの変更処理------------------------
@@ -580,7 +613,6 @@ Function CreateTable()
       'カラム名変更[追加⇒削除]------------------
       ElseIf Range("B" & line) Like "rename:*" Then
       
-      
       End If
       
       If queryString <> "" Then
@@ -592,9 +624,15 @@ Function CreateTable()
     Next
   End If
   
+  If queryString <> "" Then
+    Call Library.showDebugForm("QueryString", queryString)
+    Call Ctl_MySQL.runQuery(queryString)
+    queryString = ""
+    'Range("B" & line) = ""
+  End If
   
   '処理終了--------------------------------------
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_MySQL.dbClose
@@ -607,14 +645,14 @@ Function CreateTable()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
 
 '==================================================================================================
 'DDL生成
-Function makeDDL()
+Function makeDDL(Optional outpuFileFlg As Boolean = True)
   Dim line As Long, endLine As Long
   Dim idxLine As Long, idxEndLine As Long
   Dim tableName As String
@@ -657,7 +695,10 @@ Function makeDDL()
   
   
   'カラム情報--------------------------------------------------------------------------------------
-  queryString = "DROP TABLE IF EXISTS " & tableName & ";" & vbNewLine & vbNewLine
+  If outpuFileFlg = True Then
+    queryString = "DROP TABLE IF EXISTS " & tableName & ";" & vbNewLine & vbNewLine
+  End If
+  
   queryString = queryString & "CREATE TABLE " & tableName & " ("
   For line = startLine To endLine
     If line = startLine Then
@@ -712,7 +753,8 @@ Function makeDDL()
   'インデックス情報------------------------------
   queryString = queryString & vbNewLine & vbNewLine & "-- インデックス情報------------------------------"
   
-  idxLine = Ctl_Common.chkIndexRow + 1
+  Call Ctl_Common.chkRowStartLine
+  idxLine = setLine("indexStart")
   idxEndLine = targetSheet.Range(setVal("Cell_logicalName") & idxLine).End(xlDown).Row
   
   For line = idxLine To idxEndLine
@@ -721,7 +763,11 @@ Function makeDDL()
   
     If targetSheet.Range("C" & line) = "PK" Then
       queryString = queryString & vbNewLine & "  ,PRIMARY KEY (" & queryColumnTmp & ")"
-    Else
+    
+    ElseIf targetSheet.Range("C" & line) = "#" Then
+      Exit For
+      
+    ElseIf targetSheet.Range("C" & line) <> "" Then
       queryString = queryString & vbNewLine & "  ,        KEY " & targetSheet.Range(setVal("Cell_logicalName") & line) & " (" & queryColumnTmp & ")"
     End If
   Next
@@ -729,7 +775,7 @@ Function makeDDL()
   
   
   queryColumnTmp = targetSheet.Range(setVal("Cell_logicalTableName")) & vbTab & targetSheet.Range(setVal("Cell_tableNote"))
-  queryString = queryString & vbNewLine & ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='" & queryColumnTmp & "'"
+  queryString = queryString & vbNewLine & ")" & vbNewLine & "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='" & queryColumnTmp & "'"
   
   'Copyright情報---------------------------------
 '  strCopyright = vbNewLine & vbNewLine & vbNewLine & _
@@ -740,13 +786,15 @@ Function makeDDL()
 '              "------------------------------------------------------------------------------- */"
   
   
-  
-  queryString = strHeader & queryString
-  Call Library.outputText(queryString, setVal("outputDir") & "\CREATE_TABLE_" & targetSheet.Range(setVal("Cell_physicalTableName")) & ".sql")
-  
+  If outpuFileFlg = True Then
+    queryString = strHeader & queryString
+    Call Library.outputText(queryString, setVal("outputDir") & "\CREATE_TABLE_" & targetSheet.Range(setVal("Cell_physicalTableName")) & ".sql")
+  Else
+    makeDDL = queryString
+  End If
   
   '処理終了--------------------------------------
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
@@ -758,6 +806,109 @@ Function makeDDL()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
+
+'==================================================================================================
+'インデックス情報設定
+Function setIndexInfo(Optional Target As Range)
+  Dim line As Long, endLine As Long, colLine As Long, endColLine As Long
+  Dim aryColumn() As String
+  Dim maxIndexNo As Long
+  Dim i As Integer
+  
+  Const funcName As String = "Ctl_MySQL.setIndexInfo"
+  
+'  On Error GoTo catchError
+  Call Library.startScript
+  Call Library.showDebugForm(funcName & "===========================================")
+  
+  
+  Call Ctl_Common.chkRowStartLine
+  maxIndexNo = Application.WorksheetFunction.Max(Range(Cells(startLine, Target.Column), Cells(setLine("columnEnd"), Target.Column)))
+  Call Library.showDebugForm("maxIndexNo", maxIndexNo)
+  ReDim aryColumn(maxIndexNo)
+  
+  For line = startLine To CLng(setLine("columnEnd"))
+    If Cells(line, Target.Column) <> "" Then
+      aryColumn(Cells(line, Target.Column)) = Range(setVal("Cell_physicalName") & line)
+      
+      Call Library.showDebugForm("Key   ", Cells(line, Target.Column))
+      Call Library.showDebugForm("Val   ", Range(setVal("Cell_physicalName") & line))
+    End If
+    DoEvents
+  Next
+  
+  Select Case True
+    Case Target.Column = Library.getColumnNo(setVal("Cell_PK"))
+      colLine = setLine("indexStart")
+      Range("C" & colLine) = "PK"
+      Range("E" & colLine) = "UNIQUE"
+      Range("F" & colLine) = "BTREE"
+      Range(setVal("Cell_Null") & Target.Row) = 1
+      
+      Range("D" & colLine) = "PRIMARY"
+    
+    Case Target.Column = Library.getColumnNo(setVal("Cell_Idx01"))
+      colLine = 1
+      Range("C" & colLine) = "1"
+    
+    Case Target.Column = Library.getColumnNo(setVal("Cell_Idx02"))
+      colLine = 2
+    
+    Case Target.Column = Library.getColumnNo(setVal("Cell_Idx03"))
+      colLine = 3
+    
+    Case Target.Column = Library.getColumnNo(setVal("Cell_Idx04"))
+      colLine = 4
+    
+    Case Target.Column = Library.getColumnNo(setVal("Cell_Idx05"))
+      colLine = 5
+    
+    Case Target.Column = Library.getColumnNo(setVal("Cell_Idx06"))
+      colLine = 6
+    
+    Case Target.Column = Library.getColumnNo(setVal("Cell_Idx07"))
+      colLine = 7
+    
+    Case Target.Column = Library.getColumnNo(setVal("Cell_Idx08"))
+      colLine = 8
+    
+    Case Target.Column = Library.getColumnNo(setVal("Cell_Idx09"))
+      colLine = 9
+    
+    Case Target.Column = Library.getColumnNo(setVal("Cell_Idx10"))
+      colLine = 10
+    Case Else
+  End Select
+
+  Range("D" & setLine("indexStart") + colLine) = "Idx_" & Range(setVal("Cell_physicalTableName")) & "_" & Format(colLine, "00")
+  Range("E" & setLine("indexStart") + colLine) = "NONUNIQUE"
+  Range("F" & setLine("indexStart") + colLine) = "BTREE"
+
+
+
+  If UBound(aryColumn) = 0 Then
+    Range("C" & colLine & ":X" & colLine).ClearContents
+    
+  Else
+    For i = 1 To UBound(aryColumn)
+      If i = 1 Then
+        Range("G" & setLine("indexStart") + colLine) = aryColumn(i)
+      Else
+        Range("G" & setLine("indexStart") + colLine) = Range("G" & setLine("indexStart") + colLine) & "," & aryColumn(i)
+      End If
+      DoEvents
+    Next
+  End If
+  
+  
+  Call Library.showDebugForm("=================================================================")
+
+  Call Library.endScript
+  Exit Function
+'エラー発生時--------------------------------------------------------------------------------------
+catchError:
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
+End Function

@@ -30,12 +30,11 @@ Function ZoomIn(Optional slctCellAddress As String)
     .TextBox.MultiLine = True
     .TextBox.EnterKeyBehavior = True
     
-    If cellVal = StrConv(cellVal, vbNarrow) Then
-      '半角の場合
+    
+    If ActiveCell.HasFormula = False Then
       .TextBox.IMEMode = fmIMEModeOff
     Else
-      '全角の場合
-      .TextBox.IMEMode = fmIMEModeOn
+      .TextBox.IMEMode = ActiveCell.Validation.IMEMode
     End If
     
     .Label1.Caption = "選択セル：" & ActiveCell.Address(RowAbsolute:=False, ColumnAbsolute:=False)
@@ -54,7 +53,7 @@ Function ZoomOut(Text As String, SetTargetAddress As String)
   targetSheet.Activate
   Range(SetTargetAddress).Value = Text
   
-  Call endScript
+  Call Library.endScript
 End Function
 
 

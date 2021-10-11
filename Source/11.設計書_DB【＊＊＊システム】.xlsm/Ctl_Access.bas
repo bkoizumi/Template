@@ -112,7 +112,7 @@ Lbl_nextfor:
   
   '処理終了--------------------------------------
 '  Call Ctl_Access.dbClose
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
@@ -124,7 +124,7 @@ Lbl_nextfor:
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
@@ -202,7 +202,7 @@ Function getColumnInfo()
   Next
   '処理終了--------------------------------------
   Call Ctl_Access.dbClose
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
@@ -214,7 +214,7 @@ Function getColumnInfo()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
@@ -269,7 +269,7 @@ Function makeDDL()
   
   '処理終了--------------------------------------
 '  Call Ctl_Access.dbClose
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
@@ -281,7 +281,7 @@ Function makeDDL()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
@@ -389,7 +389,7 @@ Function CreateTable()
   
   '処理終了--------------------------------------
   Call Ctl_Access.dbClose
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
@@ -401,7 +401,7 @@ Function CreateTable()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
@@ -450,6 +450,6 @@ catchError:
   If Err.Number = -2147217900 Then
     Call Library.showNotice(502, funcName & " 構文エラー" & vbNewLine & queryString, True)
   Else
-    Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+    Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
   End If
 End Function

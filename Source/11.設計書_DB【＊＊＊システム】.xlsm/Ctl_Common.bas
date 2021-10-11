@@ -35,12 +35,21 @@ Function ClearData()
       Range("B" & line & ":AZ" & line).SpecialCells(xlCellTypeConstants, 23).ClearContents
       Rows(line & ":" & line).RowHeight = setVal("defaultRowHeight")
       On Error GoTo catchError
+    
+    ElseIf Range("A" & line) = "IndexColumn" Then
+      On Error Resume Next
+      Range("B" & line) = ""
+      Range("D" & line & ":AZ" & line).SpecialCells(xlCellTypeConstants, 23).ClearContents
+      Rows(line & ":" & line).RowHeight = setVal("defaultRowHeight")
+      On Error GoTo catchError
+    
+    
     End If
-    DoEvents
+    Call Ctl_ProgressBar.showBar(thisAppName, 1, PrgP_Max, line, endLine, "データクリア")
+    
     line = line + 1
   Loop
-  Columns("H:H").EntireColumn.Hidden = True
-  Columns("M:S").EntireColumn.Hidden = True
+  'Columns("M:S").EntireColumn.Hidden = True
   
   '処理終了--------------------------------------
   Call Library.showDebugForm("=================================================================")
@@ -54,7 +63,7 @@ Function ClearData()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
@@ -70,20 +79,32 @@ Function addRow(line As Long)
 End Function
 
 
+
+
 '==================================================================================================
-Function chkIndexRow()
+Function chkRowStartLine()
   Dim line As Long, endLine As Long
   Dim IndexRow As Long
   
   endLine = Cells(Rows.count, 1).End(xlUp).Row
   For line = startLine To endLine
-    If Range("A" & line) = "IndexStart" Then
-      IndexRow = line
-      Exit For
-    End If
+    Select Case Range("A" & line)
+      Case "spacer1"
+        setLine("columnEnd") = line - 1
+      
+      Case "IndexStart"
+        setLine("indexStart") = line + 1
+      
+      Case "TriggerStart"
+        setLine("triggerStart") = line + 1
+    End Select
+    DoEvents
   Next
-  Call Library.showDebugForm("IndexRow", IndexRow)
-  chkIndexRow = IndexRow
+  
+  Call Library.showDebugForm("columnEnd   ", setLine("columnEnd"))
+  Call Library.showDebugForm("indexStart  ", setLine("indexStart"))
+  Call Library.showDebugForm("triggerStart", setLine("triggerStart"))
+
 End Function
 
 
@@ -145,7 +166,7 @@ Function makeTblList()
     sheetName = sheetList.Name
     
     Select Case sheetName
-      Case "設定-MySQL", "設定-ACC", "Notice", "DataType", "コピー用", "表紙", "TBLリスト", "変更履歴", "ER図", "Tmp"
+      Case "設定", "設定-MySQL", "設定-ACC", "Notice", "DataType", "CopyLine", "CopySheet", "Tmp", "表紙", "TBLリスト", "変更履歴", "ER図"
       Case Else
         Call Library.showDebugForm("sheetName", sheetName)
     
@@ -270,7 +291,7 @@ Function insertRow()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
@@ -301,7 +322,7 @@ Function deleteRow()
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
@@ -398,5 +419,5 @@ Function chkEditRow(targetRange As Range, changeVal As String)
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, funcName & vbNewLine & Err.Number & "：" & Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function

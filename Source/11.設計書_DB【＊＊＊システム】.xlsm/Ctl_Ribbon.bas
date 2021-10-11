@@ -66,7 +66,7 @@ Function getSheetsList(control As IRibbonControl, ByRef returnedVal)
 
   For Each sheetName In ActiveWorkbook.Sheets
     Select Case sheetName.Name
-      Case "設定", "Notice", "DataType", "コピー用"
+      Case "設定", "設定-MySQL", "設定-ACC", "DataType", "Tmp", "ConLine", "Notice", "コピー用"
       Case Else
         Set Button = DOMDoc.createElement("button")
         With Button
@@ -140,7 +140,7 @@ Function selectActiveSheet(control As IRibbonControl)
   ActiveWindow.ScrollWorkbookTabs Sheets:=sheetCount
   Sheets(sheetNameID).Select
   
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   
   Call Library.endScript
 End Function
@@ -249,7 +249,7 @@ Function OpenFavoriteList(control As IRibbonControl)
   If Library.chkFileExists(fileNamePath) Then
     Workbooks.Open fileName:=fileNamePath
   End If
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
 End Function
 
 
@@ -368,7 +368,7 @@ End Function
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
 '==================================================================================================
-Function Optionshow(control As IRibbonControl)
+Function showOption(control As IRibbonControl)
   Call Ctl_Option.showOption
 End Function
 
@@ -387,7 +387,7 @@ Function ClearAll(control As IRibbonControl)
   Call Ctl_Option.ClearAll
   
   '処理終了--------------------------------------
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
   Call Library.endScript

@@ -39,17 +39,20 @@ Function addSheet()
   Call init.Setting
   '----------------------------------------------
   
-  newSheetName = CopySheet.Range("H5")
+  newSheetName = sheetCopy.Range(setVal("Cell_logicalTableName"))
   
-  CopySheet.copy After:=Worksheets(Worksheets.count)
+  sheetCopy.copy After:=Worksheets(Worksheets.count)
   ActiveWorkbook.Sheets(Worksheets.count).Tab.ColorIndex = -4142
   ActiveWorkbook.Sheets(Worksheets.count).Name = newSheetName
   Sheets(newSheetName).Select
+  Application.Goto Reference:=Range("A1"), Scroll:=True
+  Range(setVal("Cell_logicalName") & 9).Select
   
-  CopySheet.Range("D5") = ""
-  CopySheet.Range("H5") = ""
-  CopySheet.Range("D6") = ""
-  CopySheet.Range("B2") = ""
+  
+  sheetCopy.Range(setVal("Cell_logicalTableName")) = ""
+  sheetCopy.Range(setVal("Cell_physicalTableName")) = ""
+  sheetCopy.Range(setVal("Cell_tableNote")) = ""
+  sheetCopy.Range(setVal("Cell_TableType")) = ""
   
   
   'èàóùèIóπ--------------------------------------

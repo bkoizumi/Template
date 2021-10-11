@@ -4,7 +4,7 @@
 <tabs>
   <tab id="DBTab" label="DB設計書" insertBeforeMso="TabHome">
     <group id="設定" label="設定">
-	    <button id="Option"     label="Option"      imageMso="CurrentViewSettings" screentip="オプション設定" supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.Option" />
+	    <button id="Option"     label="Option"      imageMso="CurrentViewSettings" screentip="オプション設定" supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.showOption" />
       <button id="データ削除" label="データ削除"  imageMso="ClearAll" screentip="データ削除" supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.ClearAll" />
       <dynamicMenu  id="SheetList"      label="シート一覧"  imageMso="HeaderFooterSheetNameInsert" size="normal" getContent="Ctl_Ribbon.getSheetsList" />
     </group >
@@ -12,7 +12,7 @@
     <group id="共通" label="共通">
       <button id="シート追加"     label="シート追加"    imageMso="SheetInsert"          screentip="シート追加"    supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.addSheet" />
       <button id="TBLリスト生成"  label="TBLリスト生成" imageMso="CurrentViewSettings"  screentip="TBLリスト生成" supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.makeTblList" />
-      <button id="ER図生成"       label="ER図生成"      imageMso="CurrentViewSettings"  screentip="ER図生成"      supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.makeER_ConnectLine" />
+      <button id="ER図生成"       label="ER図生成"      imageMso="CurrentViewSettings"  screentip="ER図生成"      supertip="オプション画面を表示します &#13;" onAction="Ctl_Ribbon.makeERImage" />
 
       <button id="ERLine1"  label="1対1"          imageMso="CurrentViewSettings"  screentip="ER図生成"      supertip="コネクターを作成します &#13;" onAction="Ctl_Ribbon.makeER_ConnectLine" />
       <button id="ERLine2"  label="1対多"         imageMso="CurrentViewSettings"  screentip="ER図生成"      supertip="コネクターを作成します &#13;" onAction="Ctl_Ribbon.makeER_ConnectLine" />

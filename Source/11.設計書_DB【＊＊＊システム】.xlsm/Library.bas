@@ -327,24 +327,24 @@ End Function
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
 Function chkHeader(baseNameArray As Variant, chkNameArray As Variant)
-  Dim ErrMeg As String
+  Dim errMeg As String
   Dim i As Integer
 
 On Error GoTo catchError
-  ErrMeg = ""
+  errMeg = ""
 
   If UBound(baseNameArray) <> UBound(chkNameArray) Then
-    ErrMeg = "個数が異なります。"
-    ErrMeg = ErrMeg & vbNewLine & UBound(baseNameArray) & "<=>" & UBound(chkNameArray) & vbNewLine
+    errMeg = "個数が異なります。"
+    errMeg = errMeg & vbNewLine & UBound(baseNameArray) & "<=>" & UBound(chkNameArray) & vbNewLine
   Else
     For i = LBound(baseNameArray) To UBound(baseNameArray)
       If baseNameArray(i) <> chkNameArray(i) Then
-        ErrMeg = ErrMeg & vbNewLine & i & ":" & baseNameArray(i) & "<=>" & chkNameArray(i)
+        errMeg = errMeg & vbNewLine & i & ":" & baseNameArray(i) & "<=>" & chkNameArray(i)
       End If
     Next
   End If
 
-  chkHeader = ErrMeg
+  chkHeader = errMeg
 
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
@@ -810,7 +810,7 @@ Function delSheetData(Optional line As Long)
   End If
   DoEvents
 
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
 End Function
 
 '**************************************************************************************************
@@ -842,7 +842,7 @@ End Function
 ' * @Link https://www.relief.jp/docs/018407.html
 '**************************************************************************************************
 Function delImage()
-  Dim Rng As Range
+  Dim rng As Range
   Dim Shp As Shape
 
   If typeName(Selection) <> "Range" Then
@@ -850,9 +850,9 @@ Function delImage()
   End If
 
   For Each Shp In ActiveSheet.Shapes
-    Set Rng = Range(Shp.TopLeftCell, Shp.BottomRightCell)
+    Set rng = Range(Shp.TopLeftCell, Shp.BottomRightCell)
 
-    If Not (Intersect(Rng, Selection) Is Nothing) Then
+    If Not (Intersect(rng, Selection) Is Nothing) Then
       Shp.Delete
     End If
   Next
@@ -901,7 +901,7 @@ Function delTableData()
   Cells.Select
   Selection.NumberFormatLocal = "G/標準"
 
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
 End Function
 
 
@@ -1143,7 +1143,7 @@ End Function
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-Function getCellPosition(Rng As Range, ActvCellTop As Long, ActvCellLeft As Long)
+Function getCellPosition(rng As Range, ActvCellTop As Long, ActvCellLeft As Long)
 
   Dim R1C1Top As Long, R1C1Left As Long
   Dim DPI, PPI
@@ -1156,8 +1156,8 @@ Function getCellPosition(Rng As Range, ActvCellTop As Long, ActvCellLeft As Long
 '  ActvCellTop = ((R1C1Top * DPI / PPI) * (ActiveWindow.Zoom / 100)) + Rng.Top
 '  ActvCellLeft = ((R1C1Left * DPI / PPI) * (ActiveWindow.Zoom / 100)) + Rng.Left
 
-  ActvCellTop = (((Rng.Top * (DPI / PPI)) * (ActiveWindow.Zoom / 100)) + R1C1Top) * (PPI / DPI)
-  ActvCellLeft = (((Rng.Left * (DPI / PPI)) * (ActiveWindow.Zoom / 100)) + R1C1Left) * (PPI / DPI)
+  ActvCellTop = (((rng.Top * (DPI / PPI)) * (ActiveWindow.Zoom / 100)) + R1C1Top) * (PPI / DPI)
+  ActvCellLeft = (((rng.Left * (DPI / PPI)) * (ActiveWindow.Zoom / 100)) + R1C1Left) * (PPI / DPI)
 
 '  If ActvCellLeft <= 0 Then
 '    ActvCellLeft = 20
@@ -1167,7 +1167,7 @@ Function getCellPosition(Rng As Range, ActvCellTop As Long, ActvCellLeft As Long
   Call Library.showDebugForm("R1C1Top     ：" & R1C1Top)
   Call Library.showDebugForm("R1C1Left    ：" & R1C1Left)
   Call Library.showDebugForm("-------------------------")
-  Call Library.showDebugForm("Rng.Address ：" & Rng.Address)
+  Call Library.showDebugForm("Rng.Address ：" & rng.Address)
   Call Library.showDebugForm("ActvCellTop ：" & ActvCellTop)
   Call Library.showDebugForm("ActvCellLeft：" & ActvCellLeft)
 End Function
@@ -1763,7 +1763,7 @@ End Function
 ' * Worksheets("Notice").Visible = True
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-Function showNotice(Code As Long, Optional ErrMeg As String, Optional runEndflg As Boolean)
+Function showNotice(Code As Long, Optional errMeg As String, Optional runEndflg As Boolean)
   Dim title As String, Message As String, SpeakMeg As String
   Dim runTime As Date
   Dim endLine As Long
@@ -1771,7 +1771,7 @@ Function showNotice(Code As Long, Optional ErrMeg As String, Optional runEndflg 
   On Error GoTo catchError
 
   Call Library.showDebugForm("Code：" & Code)
-  Call Library.showDebugForm("ErrMeg：" & ErrMeg)
+  Call Library.showDebugForm("ErrMeg：" & errMeg)
   Call Library.showDebugForm("runEndflg：" & runEndflg)
 
   runTime = Format(Now(), "yyyy/mm/dd hh:nn:ss")
@@ -1779,7 +1779,7 @@ Function showNotice(Code As Long, Optional ErrMeg As String, Optional runEndflg 
   endLine = sheetNotice.Cells(Rows.count, 1).End(xlUp).Row
   title = Application.WorksheetFunction.VLookup(Code, sheetNotice.Range("A2:B" & endLine), 2, False)
   SpeakMeg = title
-  Message = ErrMeg
+  Message = errMeg
   
   If runEndflg = True Then
     SpeakMeg = SpeakMeg & "。処理を中止します"
@@ -1793,7 +1793,7 @@ Function showNotice(Code As Long, Optional ErrMeg As String, Optional runEndflg 
     Application.Speech.Speak Text:=SpeakMeg, SpeakAsync:=True, SpeakXML:=True
   End If
   
-  If ErrMeg <> "" Then
+  If errMeg <> "" Then
     With Frm_Alert
       .StartUpPosition = 1
       .TextBox = Message

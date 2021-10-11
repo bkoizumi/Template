@@ -24,13 +24,12 @@ Private Sub UserForm_Initialize()
   Dim line As Long, endLine As Long
   
   Call init.Setting
-  endLine = SettingSheet.Cells(Rows.count, 7).End(xlUp).Row
+  endLine = sheetSetting.Cells(Rows.count, 7).End(xlUp).Row
   
-  With Me
-    For line = 3 To endLine
-      .DBType.AddItem SettingSheet.Range("G" & line).Text
-    Next
-  End With
+  For line = 5 To endLine
+    DBType.AddItem sheetSetting.Range("G" & line).Text
+  Next
+  DBType.ListIndex = 0
 
 End Sub
 
@@ -54,10 +53,10 @@ End Sub
 Private Sub Submit_Click()
   Dim execDay As Date
 
-  CopySheet.Range("D5") = Me.TableName01.Text
-  CopySheet.Range("H5") = Me.TableName02.Text
-  CopySheet.Range("D6") = Me.Comment.Text
-  CopySheet.Range("B2") = Me.DBType.Value
+  sheetCopy.Range(setVal("Cell_logicalTableName")) = TableName01.Text
+  sheetCopy.Range(setVal("Cell_physicalTableName")) = TableName02.Text
+  sheetCopy.Range(setVal("Cell_tableNote")) = Comment.Text
+  sheetCopy.Range(setVal("Cell_TableType")) = DBType.Value
   
   Unload Me
 End Sub

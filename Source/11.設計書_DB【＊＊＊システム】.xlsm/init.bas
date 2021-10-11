@@ -14,6 +14,7 @@ Public sheetTmp       As Worksheet
 Public sheetCopy      As Worksheet
 Public sheetTblList   As Worksheet
 Public sheetERImage   As Worksheet
+Public sheetCopyLine   As Worksheet
 
 
 'グローバル変数----------------------------------
@@ -46,7 +47,7 @@ Public usePhysicalName    As Boolean
 
 '設定値保持
 Public setVal         As Object
-
+Public setLine        As Object
 
 'ファイル関連
 Public logFile      As String
@@ -78,6 +79,7 @@ Function unsetting(Optional flg As Boolean = False)
   Set sheetCopy = Nothing
   Set sheetTblList = Nothing
   
+  Set setLine = Nothing
   Set setVal = Nothing
   
   PrgP_Max = 0
@@ -114,13 +116,22 @@ Function Setting(Optional reCheckFlg As Boolean)
   Set sheetTmp = ThisBook.Worksheets("Tmp")
   Set sheetNotice = ThisBook.Worksheets("Notice")
   
-  Set sheetCopy = ThisBook.Worksheets("コピー用")
+  Set sheetCopy = ThisBook.Worksheets("CopySheet")
   Set sheetTblList = ThisBook.Worksheets("TBLリスト")
   Set sheetERImage = ThisBook.Worksheets("ER図")
+  Set sheetCopyLine = ThisBook.Worksheets("CopyLine")
   
   logFile = ThisWorkbook.Path & "\ExcelMacro.log"
         
   '設定値読み込み----------------------------------------------------------------------------------
+  Set setLine = Nothing
+  Set setLine = CreateObject("Scripting.Dictionary")
+  For line = 5 To sheetSetting.Cells(Rows.count, 4).End(xlUp).Row
+    If sheetSetting.Range("D" & line) <> "" Then
+      setLine.Add sheetSetting.Range("D" & line).Text, sheetSetting.Range("E" & line).Text
+    End If
+  Next
+  
   Set setVal = Nothing
   Set setVal = CreateObject("Scripting.Dictionary")
   
@@ -145,7 +156,7 @@ Function Setting(Optional reCheckFlg As Boolean)
         ArryTypeName(sheetSetting.Range("L" & line)) = sheetSetting.Range("M" & line)
       Next
     Case "MySQL"
-      ConnectServer = "Driver={" & setVal("ODBCDriver") & "};" & _
+      ConnectServer = "Driver={MySQL ODBC 8.0 Unicode Driver};" & _
                       " Server=" & setVal("DBServer") & ";" & _
                       " Port=" & setVal("Port") & ";" & _
                       " Database=" & setVal("DBName") & ";" & _

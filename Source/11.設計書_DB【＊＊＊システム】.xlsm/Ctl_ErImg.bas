@@ -49,7 +49,7 @@ Function showUserForm()
   
   '処理終了--------------------------------------
   Ctl_MySQL.dbClose
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   Call Ctl_ProgressBar.showEnd
   Call Library.showDebugForm("=================================================================")
   If runFlg = False Then
@@ -106,7 +106,7 @@ Function deleteImages(targetShapeName As String)
   Next
   
   '処理終了--------------------------------------
-  Application.GoTo Reference:=Range("A1"), Scroll:=True
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   If runFlg = False Then
     Call Library.showDebugForm("=================================================================")
     Call Ctl_ProgressBar.showEnd
@@ -144,15 +144,15 @@ Function makeTable(tableName As String)
   Call Library.showDebugForm("tableName", tableName)
   Call Library.showDebugForm("PrgP_Cnt", PrgP_Cnt)
   
-  sheetSetting.Activate
-  sheetSetting.Shapes.Range(Array("ERImg")).Select
+  sheetCopyLine.Activate
+  sheetCopyLine.Shapes.Range(Array("ERImg")).Select
   
   'テーブル名設定
-  sheetSetting.Shapes.Range(Array("TableName")).Select
+  sheetCopyLine.Shapes.Range(Array("TableName")).Select
   Selection.ShapeRange(1).TextFrame2.TextRange.Characters.Text = tableName
 
   'カラム名をリセット
-  sheetSetting.Shapes.Range(Array("ColumnList")).Select
+  sheetCopyLine.Shapes.Range(Array("ColumnList")).Select
   Selection.ShapeRange(1).TextFrame2.TextRange.Characters.Text = ""
 
 
@@ -196,9 +196,9 @@ Function makeColumnList(physicalName As String)
   
   Call Ctl_MySQL.getColumnInfo(physicalName, True)
   
-  sheetSetting.Activate
-  sheetSetting.Shapes.Range(Array("ERImg")).Select
-  sheetSetting.Shapes.Range(Array("ColumnList")).Select
+  sheetCopyLine.Activate
+  sheetCopyLine.Shapes.Range(Array("ERImg")).Select
+  sheetCopyLine.Shapes.Range(Array("ColumnList")).Select
   
   For line = 0 To UBound(lValues)
     Call Library.showDebugForm("lValues", lValues(line, 0))
@@ -278,7 +278,7 @@ Function copy(tableName As String)
   
   Call Library.showDebugForm("useImage", setVal("useImage"))
     
-  sheetSetting.Shapes.Range(Array("ERImg")).Select
+  sheetCopyLine.Shapes.Range(Array("ERImg")).Select
   Selection.copy
   sheetERImage.Select
   Cells(6, 3).Select
@@ -345,29 +345,28 @@ Function ConnectLine(lineType As String)
   '----------------------------------------------
   Call Library.showDebugForm("lineType", lineType)
   
-'  ReDim slctImgs(Selection.count - 1)
-'  slctImgCnt = 0
-'  For Each slctImg In Selection
-'    Call Library.showDebugForm("slctImg", slctImg.Name)
-'    slctImgs(slctImgCnt) = slctImg.Name
-'    If slctImgCnt = 0 Then
-'      startCell = ActiveSheet.Shapes(slctImg.Name).TopLeftCell.Offset(, -1).Address
-'    Else
-'      endCell = ActiveSheet.Shapes(slctImg.Name).TopLeftCell.Offset(, -1).Address
-'    End If
-'
-'    slctImgCnt = slctImgCnt + 1
-'  Next
-'  Call Library.showDebugForm("startCell", startCell)
-'  Call Library.showDebugForm("endCell  ", endCell)
-  
-  If typeName(ActiveCell) = "Range" Then
+  If typeName(Selection) = "Range" Then
     startCell = ActiveCell.Address
     endCell = ActiveCell.Offset(, 3).Address
-  Else
-    startCell = "C4"
-    endCell = "F4"
+    
+  ElseIf typeName(Selection) = "DrawingObjects" Then
+    ReDim slctImgs(Selection.count - 1)
+    slctImgCnt = 0
+    For Each slctImg In Selection
+      Call Library.showDebugForm("slctImg", slctImg.Name)
+      slctImgs(slctImgCnt) = slctImg.Name
+      If slctImgCnt = 0 Then
+        startCell = ActiveSheet.Shapes(slctImg.Name).TopLeftCell.Offset(1, 11).Address
+      Else
+        endCell = ActiveSheet.Shapes(slctImg.Name).TopLeftCell.Offset(1, -1).Address
+      End If
+  
+      slctImgCnt = slctImgCnt + 1
+    Next
   End If
+  Call Library.showDebugForm("startCell", startCell)
+  Call Library.showDebugForm("endCell  ", endCell)
+  
   counter = ActiveSheet.Shapes.count + 1
   
   Select Case lineType
@@ -400,8 +399,8 @@ Function ConnectLine(lineType As String)
   
   
   
-  sheetSetting.Select
-  sheetSetting.Shapes.Range(Array(startImg)).Select
+  sheetCopyLine.Select
+  sheetCopyLine.Shapes.Range(Array(startImg)).Select
   Selection.copy
 
   sheetERImage.Select
@@ -411,8 +410,8 @@ Function ConnectLine(lineType As String)
   ERImg_LineSName = "ERImg_LineS_" & counter
   Selection.Name = ERImg_LineSName
   
-  sheetSetting.Select
-  sheetSetting.Shapes.Range(Array(endImg)).Select
+  sheetCopyLine.Select
+  sheetCopyLine.Shapes.Range(Array(endImg)).Select
   Call Library.waitTime(100)
   Selection.copy
   

@@ -107,7 +107,7 @@ Function errorHandle(funcName As String, ByRef objErr As Object)
   Message = funcName & vbCrLf & objErr.Description
 
   '音声認識発話
-  Application.Speech.Speak Text:="エラーが発生しました", SpeakAsync:=True
+  Application.Speech.Speak text:="エラーが発生しました", SpeakAsync:=True
   Message = Application.WorksheetFunction.VLookup(objErr.Number, sheetNotice.Range("A2:B" & endLine), 2, False)
 
   Call MsgBox(Message, vbCritical)
@@ -201,17 +201,18 @@ End Function
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-Function chkSheetExists(sheetName) As Boolean
+Function chkSheetExists(SheetName) As Boolean
 
   Dim tempSheet As Object
   Dim result As Boolean
 
   result = False
   For Each tempSheet In Sheets
-    If LCase(sheetName) = LCase(tempSheet.Name) Then
+    If LCase(SheetName) = LCase(tempSheet.Name) Then
       result = True
       Exit For
     End If
+    DoEvents
   Next
   chkSheetExists = result
 End Function
@@ -265,10 +266,10 @@ End Function
 Function chkExcludeSheet(chkSheetName As String) As Boolean
 
  Dim result As Boolean
-  Dim sheetName As Variant
+ Dim SheetName As Variant
 
-  For Each sheetName In Range("ExcludeSheet")
-    If sheetName = chkSheetName Then
+  For Each SheetName In Range("ExcludeSheet")
+    If SheetName = chkSheetName Then
       result = True
       Exit For
     Else
@@ -388,7 +389,7 @@ Function chkLocalDrive(targetPath As String)
       Call Library.showDebugForm("不明、ネットワークドライブ、CDドライブなど")
   End Select
 
-  If setVal("debugMode") = "develop" Then
+  If setVal("LogLevel") = "develop" Then
     retVal = False
   End If
   chkLocalDrive = retVal
@@ -495,14 +496,14 @@ End Function
 ' *
 ' * @Link http://bekkou68.hatenablog.com/entry/20090414/1239685179
 '**************************************************************************************************
-Function convFixedLength(strTarget As String, lengs As Long, addString As String) As String
+Function convFixedLength(targetVal As String, lengs As Long, addString As String) As String
   Dim strFirst As String
   Dim strExceptFirst As String
 
-  Do While Len(strTarget) <= lengs
-    strTarget = strTarget & addString
+  Do While LenB(StrConv(targetVal, vbFromUnicode)) <= lengs
+    targetVal = targetVal & addString
   Loop
-  convFixedLength = strTarget
+  convFixedLength = targetVal
 End Function
 
 
@@ -569,15 +570,15 @@ End Function
 ' *
 ' * @link   http://officetanaka.net/excel/function/tips/tips45.htm
 '**************************************************************************************************
-Function convHan2Zen(Text As String) As String
+Function convHan2Zen(text As String) As String
   Dim i As Long, buf As String
 
   Dim c As Range
   Dim rData As Variant, ansData As Variant
 
-  For i = 1 To Len(Text)
+  For i = 1 To Len(text)
     DoEvents
-    rData = StrConv(Text, vbWide)
+    rData = StrConv(text, vbWide)
     If Mid(rData, i, 1) Like "[Ａ-ｚ]" Or Mid(rData, i, 1) Like "[０-９]" Or Mid(rData, i, 1) Like "[－！（）／]" Then
       ansData = ansData & StrConv(Mid(rData, i, 1), vbNarrow)
     Else
@@ -632,7 +633,7 @@ Function convBase64EncodeForFile(ByVal filePath As String) As String
     .LoadFromFile filePath
     elm.dataType = "bin.base64"
     elm.nodeTypedValue = .Read(adReadAll)
-    ret = elm.Text
+    ret = elm.text
     .Close
   End With
   On Error GoTo 0
@@ -669,7 +670,7 @@ Function convBase64EncodeForString(ByVal str As String) As String
   With CreateObject("MSXML2.DOMDocument").createElement("base64")
     .dataType = "bin.base64"
     .nodeTypedValue = d
-    ret = .Text
+    ret = .text
   End With
   On Error GoTo 0
   convBase64EncodeForString = ret
@@ -1586,7 +1587,7 @@ End Function
 Function getSheetList(columnName As String)
 
   Dim i As Long
-  Dim sheetName As Object
+  Dim SheetName As Object
 
   i = 3
   If columnName = "" Then
@@ -1614,11 +1615,11 @@ Function getSheetList(columnName As String)
     .PatternTintAndShade = 0
   End With
 
-  For Each sheetName In ActiveWorkbook.Sheets
+  For Each SheetName In ActiveWorkbook.Sheets
 
     'シート名の設定
     Worksheets("設定").Range(columnName & i).Select
-    Worksheets("設定").Range(columnName & i) = sheetName.Name
+    Worksheets("設定").Range(columnName & i) = SheetName.Name
 
     ' セルの背景色解除
     With Worksheets("設定").Range(columnName & i).Interior
@@ -1627,10 +1628,10 @@ Function getSheetList(columnName As String)
     End With
 
     ' シート色と同じ色をセルに設定
-    If Worksheets(sheetName.Name).Tab.Color Then
+    If Worksheets(SheetName.Name).Tab.Color Then
       With Worksheets("設定").Range(columnName & i).Interior
         .Pattern = xlPatternNone
-        .Color = Worksheets(sheetName.Name).Tab.Color
+        .Color = Worksheets(SheetName.Name).Tab.Color
       End With
     End If
 
@@ -1708,7 +1709,7 @@ End Function
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
-Function showDebugForm(ByVal meg1 As String, Optional meg2 As Variant)
+Function showDebugForm(ByVal meg1 As String, Optional meg2 As Variant, Optional LogLevel As String)
   Dim runTime As Date
   Dim StartUpPosition As Long
   
@@ -1716,38 +1717,69 @@ Function showDebugForm(ByVal meg1 As String, Optional meg2 As Variant)
 
   runTime = Format(Now(), "yyyy/mm/dd hh:nn:ss")
 
-  If setVal("debugMode") = "none" Then
-    Exit Function
-  End If
+'  If setVal("LogLevel") = "0.none" Then
+'    Exit Function
+'  End If
 
-  meg1 = Replace(meg1, vbNewLine, " ")
+  Select Case LogLevel
+    Case "none"
+      meg1 = "[" & LogLevel & "]   " & Replace(meg1, vbNewLine, " ")
+    Case "warning"
+      meg1 = "[" & LogLevel & "] " & Replace(meg1, vbNewLine, " ")
+    Case "notice"
+      meg1 = "[" & LogLevel & "] " & Replace(meg1, vbNewLine, " ")
+    Case "info"
+      meg1 = "[" & LogLevel & "]   " & Replace(meg1, vbNewLine, " ")
+    Case "debug"
+      meg1 = "[" & LogLevel & "]  " & Replace(meg1, vbNewLine, " ")
+    Case Else
+      meg1 = "[noLeve]" & Replace(meg1, vbNewLine, " ")
+  End Select
+  
   
   If IsMissing(meg2) = False Then
-    meg1 = "  " & meg1 & "：" & Application.WorksheetFunction.Trim(CStr(meg2))
+    meg1 = meg1 & "：" & Application.WorksheetFunction.Trim(CStr(meg2))
   End If
   
-  Select Case setVal("debugMode")
-    Case "file"
-      If meg1 <> "" Then
-        Call outputLog(runTime, meg1)
-      End If
-
-    Case "form"
-
-    Case "all"
-      If meg1 <> "" Then
-        Call outputLog(runTime, meg1)
-      End If
-
-    Case "develop"
-      If meg1 <> "" Then
-        Debug.Print runTime & vbTab & meg1
-        Call outputLog(runTime, meg1)
-      End If
-
+  Select Case LogLevel
+    Case "none"
+      LogLevel = 0
+    Case "warning"
+      LogLevel = 1
+    Case "notice"
+      LogLevel = 2
+    Case "info"
+      LogLevel = 3
+    Case "debug"
+      LogLevel = 4
     Case Else
-      Exit Function
+      LogLevel = 4
   End Select
+  
+  If CInt(LogLevel) <= CInt(setVal("LogLevel")) Then
+    Call outputLog(runTime, meg1)
+    Debug.Print runTime & vbTab & meg1
+  Else
+    Debug.Print runTime & vbTab & meg1
+  End If
+  
+  'デバッグ情報画面表示--------------------------
+  With Frm_log
+    .StartUpPosition = 0
+    With .ListBox1
+      .ColumnCount = 2
+      .ColumnWidths = "100;500"
+      .AddItem ""
+      .list(.ListCount - 1, 0) = runTime
+      .list(.ListCount - 1, 1) = meg1
+      .ListIndex = .ListCount - 1
+      DoEvents
+    End With
+    .Top = Application.Top + Application.Height - .Height - 10
+    .Left = 10
+    .Show vbModeless
+  End With
+  
   
   DoEvents
   Exit Function
@@ -1770,10 +1802,6 @@ Function showNotice(Code As Long, Optional errMeg As String, Optional runEndflg 
 
   On Error GoTo catchError
 
-  Call Library.showDebugForm("Code：" & Code)
-  Call Library.showDebugForm("ErrMeg：" & errMeg)
-  Call Library.showDebugForm("runEndflg：" & runEndflg)
-
   runTime = Format(Now(), "yyyy/mm/dd hh:nn:ss")
 
   endLine = sheetNotice.Cells(Rows.count, 1).End(xlUp).Row
@@ -1782,15 +1810,15 @@ Function showNotice(Code As Long, Optional errMeg As String, Optional runEndflg 
   Message = errMeg
   
   If runEndflg = True Then
-    SpeakMeg = SpeakMeg & "。処理を中止します"
+    title = title & vbNewLine & "処理を中止します"
   End If
 
   If StopTime <> 0 Then
     Message = Message & vbNewLine & "処理時間：" & StopTime
   End If
   
-  If setVal("debugMode") = "speak" Or setVal("debugMode") = "develop" Or setVal("debugMode") = "all" Then
-    Application.Speech.Speak Text:=SpeakMeg, SpeakAsync:=True, SpeakXML:=True
+  If Not setVal("LogLevel") = "none" Then
+    Application.Speech.Speak text:=SpeakMeg, SpeakAsync:=True, SpeakXML:=True
   End If
   
   If errMeg <> "" Then
@@ -1823,7 +1851,7 @@ Function showNotice(Code As Long, Optional errMeg As String, Optional runEndflg 
   End If
   
   Message = "[" & Code & "]" & title & " " & Message
-  Call Library.showDebugForm(Message)
+  Call Library.showDebugForm(Message, , "warning")
   
   '画面描写制御終了処理
   If runEndflg = True Then
@@ -1898,7 +1926,7 @@ Function outputLog(runTime As Date, Message As String)
   If chkFileExists(logFile) Then
     fileTimestamp = FileDateTime(logFile)
   Else
-      fileTimestamp = DateAdd(setVal("Cell_logicalName"), -1, Date)
+      fileTimestamp = DateAdd("B", -1, Date)
   End If
 
   With CreateObject("ADODB.Stream")
@@ -3440,7 +3468,7 @@ Function setColumnWidth()
   Dim colName As String
   endColLine = Cells(1, Columns.count).End(xlToLeft).Column
 
-  If IsNumeric(Range("A1").Text) And IsNumeric(Range("B1").Text) Then
+  If IsNumeric(Range("A1").text) And IsNumeric(Range("B1").text) Then
     For colLine = 1 To endColLine
       Columns(colLine).ColumnWidth = Cells(1, colLine)
     Next

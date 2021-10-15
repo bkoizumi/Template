@@ -54,7 +54,7 @@ Function シート追加(newSheetName As String)
   Dim line As Long, endLine As Long, colLine As Long, endColLine As Long
 '  On Error GoTo catchError
 
-    sheetCopy.copy After:=Worksheets(Worksheets.count)
+    sheetCopyTable.copy After:=Worksheets(Worksheets.count)
     ActiveWorkbook.Sheets(Worksheets.count).Tab.ColorIndex = -4142
     ActiveWorkbook.Sheets(Worksheets.count).Name = newSheetName
     Sheets(newSheetName).Select
@@ -73,7 +73,7 @@ Function TBLリストシート生成()
   Dim line As Long, endLine As Long, colLine As Long, endColLine As Long
   Dim sheetList As Object
   Dim targetSheet   As Worksheet
-  Dim sheetName As String
+  Dim SheetName As String
   Dim result As Boolean
   
 '  On Error GoTo catchError
@@ -95,23 +95,23 @@ Function TBLリストシート生成()
       
   line = 6
   For Each sheetList In ActiveWorkbook.Sheets
-    sheetName = sheetList.Name
-    result = Library.chkExcludeSheet(sheetName)
+    SheetName = sheetList.Name
+    result = Library.chkExcludeSheet(SheetName)
     
     If result = True Then
     Else
       sheetTblList.Range("B" & line).FormulaR1C1 = "=ROW()-5"
-      sheetTblList.Range("C" & line) = Sheets(sheetName).Range("B2")
+      sheetTblList.Range("C" & line) = Sheets(SheetName).Range("B2")
 '      sheetTblList.Range("E" & line) = Sheets(sheetName).Range("D5")
 '      sheetTblList.Range("H" & line) = Sheets(sheetName).Range("H5")
-      sheetTblList.Range("Q" & line) = Sheets(sheetName).Range("D6")
+      sheetTblList.Range("Q" & line) = Sheets(SheetName).Range("D6")
     
       '論理テーブル名
-      If Sheets(sheetName).Range("D5") <> "" Then
+      If Sheets(SheetName).Range("D5") <> "" Then
         With sheetTblList.Range("E" & line)
-          .Value = Sheets(sheetName).Range("D5")
+          .Value = Sheets(SheetName).Range("D5")
           .Select
-          .Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=sheetName & "!" & "A9"
+          .Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=SheetName & "!" & "A9"
           .Font.Color = RGB(0, 0, 0)
           .Font.Underline = False
           .Font.Size = 10
@@ -121,9 +121,9 @@ Function TBLリストシート生成()
       
        '物理テーブル名
       With sheetTblList.Range("H" & line)
-        .Value = Sheets(sheetName).Range("H5")
+        .Value = Sheets(SheetName).Range("H5")
         .Select
-        .Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=sheetName & "!" & "A9"
+        .Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=SheetName & "!" & "A9"
         .Font.Color = RGB(0, 0, 0)
         .Font.Underline = False
         .Font.Size = 10
@@ -131,10 +131,10 @@ Function TBLリストシート生成()
       End With
       
       ' シート色と同じ色をセルに設定
-      If Sheets(sheetName).Tab.Color Then
+      If Sheets(SheetName).Tab.Color Then
         With sheetTblList.Range("B" & line & ":U" & line).Interior
           .Pattern = xlPatternNone
-          .Color = Sheets(sheetName).Tab.Color
+          .Color = Sheets(SheetName).Tab.Color
         End With
       End If
       

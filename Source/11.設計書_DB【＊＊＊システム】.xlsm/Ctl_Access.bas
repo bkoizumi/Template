@@ -16,7 +16,7 @@ Function dbOpen()
   On Error GoTo catchError
   
   If isDBOpen = True Then
-    Call Library.showDebugForm("Database is already opened")
+    Call Library.showDebugForm("Database is already opened", , "notice")
     Exit Function
   End If
   Call Library.showDebugForm("ConnectServer：" & ConnectServer)
@@ -25,7 +25,7 @@ Function dbOpen()
   dbCon.Open ConnectServer
   
   isDBOpen = True
-  Call Library.showDebugForm("isDBOpen：" & isDBOpen)
+  Call Library.showDebugForm("isDBOpen：" & isDBOpen, , "info")
   
   Exit Function
   
@@ -40,20 +40,20 @@ Function dbClose()
   On Error GoTo catchError
   
   If dbCon Is Nothing Then
-    Call Library.showDebugForm("Database is already closed")
+    Call Library.showDebugForm("Database is already closed", , "notice")
   Else
     dbCon.Close
     isDBOpen = False
     
     Set dbCon = Nothing
-    Call Library.showDebugForm("isDBOpen：" & isDBOpen)
+    Call Library.showDebugForm("isDBOpen：" & isDBOpen, , "info")
   End If
   
   Exit Function
 
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showDebugForm("isDBOpen：" & isDBOpen)
+  Call Library.showDebugForm("isDBOpen：" & isDBOpen, , "info")
   Call Library.showNotice(501, Err.Description, True)
 End Function
 
@@ -76,7 +76,7 @@ Function getTableInfo()
     Call init.Setting
     Call Ctl_ProgressBar.showStart
   End If
-  Call Library.showDebugForm(funcName & "==========================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   'Call Ctl_Access.dbOpen
   '----------------------------------------------
   Set cat = New ADOX.Catalog
@@ -85,23 +85,23 @@ Function getTableInfo()
     Select Case tbl.Type
       Case "TABLE"
         Call Ctl_Common.addSheet(tbl.Name)
-        Range(setVal("Cell_TableType")) = "マスターテーブル"
+        Range("F10") = "マスターテーブル"
         
       Case "VIEW"
         Call Ctl_Common.addSheet(tbl.Name)
-        Range(setVal("Cell_TableType")) = "クエリビュー"
+        Range("F10") = "クエリビュー"
       
       Case "LINK", "PASS-THROUGH"
         Call Ctl_Common.addSheet(tbl.Name)
-        Range(setVal("Cell_TableType")) = "リンクテーブル"
+        Range("F10") = "リンクテーブル"
         
       'システムテーブル
       Case "ACCESS TABLE", "SYSTEM TABLE"
         GoTo Lbl_nextfor
     End Select
     
-    Range(setVal("Cell_logicalTableName")) = ""
-    Range(setVal("Cell_physicalTableName")) = tbl.Name
+    Range("F8") = ""
+    Range("F9") = tbl.Name
     Call Ctl_Access.getColumnInfo
 
 Lbl_nextfor:
@@ -113,7 +113,7 @@ Lbl_nextfor:
   '処理終了--------------------------------------
 '  Call Ctl_Access.dbClose
   Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
@@ -156,17 +156,22 @@ Function getColumnInfo()
     Call Ctl_ProgressBar.showStart
   End If
   
-  Call Library.showDebugForm(funcName & "=========================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   Call Ctl_Access.dbOpen
   '----------------------------------------------
   Set targetSheet = ActiveSheet
-  Select Case targetSheet.Name
-    Case "設定-MySQL", "設定-ACC", "Notice", "DataType", "コピー用", "表紙", "TBLリスト", "変更履歴", "ER図"
+  
+  If SheetName.Name Like "<*>" Then
     Exit Function
-  End Select
+  Else
+    Select Case targetSheet.Name
+      Case "表紙", "変更履歴", "1.エンティティ", "2.ER図", "5.容量計算", "空白"
+      Exit Function
+    End Select
+  End If
   Call Ctl_Common.ClearData
   
-  tableName = targetSheet.Range(setVal("Cell_physicalTableName"))
+  tableName = targetSheet.Range("F9")
   'カラム情報--------------------------------------------------------------------------------------
   queryString = "SELECT * FROM " & tableName
   
@@ -176,15 +181,15 @@ Function getColumnInfo()
   columnCnt = 1
   For Each Fields In ClmRecordset.Fields
     targetSheet.Range("B" & line) = ""
-    targetSheet.Range(setVal("Cell_physicalName") & line) = Fields.Name
+    targetSheet.Range("L" & line) = Fields.Name
     
     If ArryTypeName(Fields.Type) Like "ad*" Then
-      targetSheet.Range(setVal("Cell_dateType") & line) = Fields.Type & "," & ArryTypeName(Fields.Type)
+      targetSheet.Range("V" & line) = Fields.Type & "," & ArryTypeName(Fields.Type)
     Else
-      targetSheet.Range(setVal("Cell_dateType") & line) = ArryTypeName(Fields.Type)
+      targetSheet.Range("V" & line) = ArryTypeName(Fields.Type)
     End If
     
-    Select Case Range(setVal("Cell_dateType") & line)
+    Select Case Range("V" & line)
       Case "MEMO", "DATE", "CURRENCY", "INT", "YESNO", "LONGBINARY"
       Case Else
         targetSheet.Range(setVal("Cell_digits") & line) = Fields.DefinedSize
@@ -203,7 +208,7 @@ Function getColumnInfo()
   '処理終了--------------------------------------
   Call Ctl_Access.dbClose
   Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
@@ -235,22 +240,22 @@ Function makeDDL()
     Call init.Setting
     Call Ctl_ProgressBar.showStart
   End If
-  Call Library.showDebugForm(funcName & "==========================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   'Call Ctl_Access.dbOpen
   '----------------------------------------------
   endLine = Cells(Rows.count, 5).End(xlUp).Row
   
-  queryString = "CREATE TABLE " & Range(setVal("Cell_physicalTableName")) & "("
+  queryString = "CREATE TABLE " & Range("F9") & "("
   For line = startLine To endLine
-    If Range(setVal("Cell_logicalName") & line) <> "" Then
+    If Range("B" & line) <> "" Then
       If ColumnString = "" Then
-        ColumnString = Range(setVal("Cell_logicalName") & line) & " " & Range(setVal("Cell_physicalName") & line)
+        ColumnString = Range("B" & line) & " " & Range("L" & line)
       Else
-        ColumnString = ColumnString & ",  " & Range(setVal("Cell_logicalName") & line) & " " & Range(setVal("Cell_physicalName") & line)
+        ColumnString = ColumnString & ",  " & Range("B" & line) & " " & Range("L" & line)
       End If
       
-      If Range(setVal("Cell_dateType") & line) <> "" Then
-        ColumnString = ColumnString & " (" & Range(setVal("Cell_dateType") & line) & ")" & vbNewLine
+      If Range("V" & line) <> "" Then
+        ColumnString = ColumnString & " (" & Range("V" & line) & ")" & vbNewLine
       Else
         ColumnString = ColumnString & vbNewLine
       End If
@@ -270,7 +275,7 @@ Function makeDDL()
   '処理終了--------------------------------------
 '  Call Ctl_Access.dbClose
   Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
@@ -303,25 +308,25 @@ Function CreateTable()
     Call init.Setting
     Call Ctl_ProgressBar.showStart
   End If
-  Call Library.showDebugForm(funcName & "===========================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   Call Ctl_Access.dbOpen
   '----------------------------------------------
   endLine = Cells(Rows.count, 3).End(xlUp).Row
   
-  tableName = Range(setVal("Cell_physicalTableName"))
+  tableName = Range("F9")
   
   If Ctl_Access.IsTable(tableName) = True Then
     'テーブルが存在する場合----------------------
     For line = startLine To endLine
       If Range("B" & line) = "edit" Then
         'データ型変更------------------------------
-        queryString = "ALTER TABLE [" & Range(setVal("Cell_physicalTableName")) & "] ALTER COLUMN [" & Range(setVal("Cell_physicalName") & line) & "] " & Range(setVal("Cell_dateType") & line)
+        queryString = "ALTER TABLE [" & Range("F9") & "] ALTER COLUMN [" & Range("L" & line) & "] " & Range("V" & line)
         If Range(setVal("Cell_digits") & line) <> "" Then
           queryString = queryString & " (" & Range(setVal("Cell_digits") & line) & ");"
         Else
           queryString = queryString & ";" & vbNewLine
         End If
-        Call Library.showDebugForm("QueryString", queryString)
+        Call Library.showDebugForm("QueryString", queryString, , "notice")
         Call Ctl_Access.runQuery(queryString)
         Range("B" & line) = ""
         
@@ -329,23 +334,23 @@ Function CreateTable()
       ElseIf Range("B" & line) Like "rename:*" Then
 '        oldColumnName = Replace(Range("B" & line), "rename:", "")
 '
-'        queryString = "ALTER TABLE [" & Range(setVal("Cell_physicalTableName")) & "] ADD COLUMN [" & Range(setVal("Cell_physicalName") & line) & "] " & Range(setVal("Cell_dateType") & line)
+'        queryString = "ALTER TABLE [" & Range("F9") & "] ADD COLUMN [" & Range("L" & line) & "] " & Range("V" & line)
 '        If Range(setVal("Cell_digits") & line) <> "" Then
 '          queryString = queryString & " (" & Range(setVal("Cell_digits") & line) & ");"
 '        Else
 '          queryString = queryString & ";" & vbNewLine
 '        End If
-'        Call Library.showDebugForm("QueryString", queryString)
+'        Call Library.showDebugForm("QueryString", queryString, , "notice")
 '        Call Ctl_Access.runQuery(queryString)
 '
-'        queryString = "ALTER TABLE [" & Range(setVal("Cell_physicalTableName")) & "] DROP COLUMN [" & oldColumnName & "];"
-'        Call Library.showDebugForm("QueryString", queryString)
+'        queryString = "ALTER TABLE [" & Range("F9") & "] DROP COLUMN [" & oldColumnName & "];"
+'        Call Library.showDebugForm("QueryString", queryString, , "notice")
 '        Call Ctl_Access.runQuery(queryString)
       
       'カラム削除--------------------------------
       ElseIf Range("B" & line) = "delete" Then
-        queryString = "ALTER TABLE [" & Range(setVal("Cell_physicalTableName")) & "] DROP COLUMN [" & Range(setVal("Cell_physicalName") & line) & "];"
-        Call Library.showDebugForm("QueryString", queryString)
+        queryString = "ALTER TABLE [" & Range("F9") & "] DROP COLUMN [" & Range("L" & line) & "];"
+        Call Library.showDebugForm("QueryString", queryString, , "notice")
         Call Ctl_Access.runQuery(queryString)
         Rows(line & ":" & line).Delete Shift:=xlUp
         line = line - 1
@@ -353,19 +358,19 @@ Function CreateTable()
       End If
       
       If Range("B" & line) <> "" Then
-        Call Ctl_ProgressBar.showBar(thisAppName, 1, PrgP_Max, line, endLine, "カラム情報変更：" & Range(setVal("Cell_physicalName") & line))
+        Call Ctl_ProgressBar.showBar(thisAppName, 1, PrgP_Max, line, endLine, "カラム情報変更：" & Range("L" & line))
       End If
     Next
     
     
   Else
-    queryString = "CREATE TABLE " & Range(setVal("Cell_physicalTableName")) & "("
+    queryString = "CREATE TABLE " & Range("F9") & "("
     For line = startLine To endLine
-      If Range(setVal("Cell_logicalName") & line) <> "" Then
+      If Range("B" & line) <> "" Then
         If ColumnString = "" Then
-          ColumnString = "[" & Range(setVal("Cell_physicalName") & line) & "] " & Range(setVal("Cell_dateType") & line)
+          ColumnString = "[" & Range("L" & line) & "] " & Range("V" & line)
         Else
-          ColumnString = ColumnString & ",  [" & Range(setVal("Cell_physicalName") & line) & "] " & Range(setVal("Cell_dateType") & line)
+          ColumnString = ColumnString & ",  [" & Range("L" & line) & "] " & Range("V" & line)
         End If
         
         If Range(setVal("Cell_digits") & line) <> "" Then
@@ -378,7 +383,7 @@ Function CreateTable()
       End If
     Next
     queryString = queryString & vbNewLine & ColumnString & ")"
-    Call Library.showDebugForm("QueryString", queryString)
+    Call Library.showDebugForm("QueryString", queryString, , "notice")
     Call Ctl_Access.runQuery(queryString)
     Range("B5") = "exist"
   End If
@@ -390,7 +395,7 @@ Function CreateTable()
   '処理終了--------------------------------------
   Call Ctl_Access.dbClose
   Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript

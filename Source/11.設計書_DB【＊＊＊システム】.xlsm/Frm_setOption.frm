@@ -1,19 +1,24 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Frm_Option 
-   Caption         =   "UserForm1"
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} Frm_setOption 
+   Caption         =   "基本設定"
    ClientHeight    =   8565
    ClientLeft      =   120
    ClientTop       =   465
    ClientWidth     =   10065
-   OleObjectBlob   =   "Frm_opTION.frx":0000
+   OleObjectBlob   =   "Frm_setOption.frx":0000
    StartUpPosition =   1  'オーナー フォームの中央
 End
-Attribute VB_Name = "Frm_opTION"
+Attribute VB_Name = "Frm_setOption"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+
+
+
+
+
 
 
 
@@ -38,7 +43,7 @@ Private Sub UserForm_Initialize()
   'DBList取得
   endLine = sheetSetting.Cells(Rows.count, 8).End(xlUp).Row
   For line = 5 To endLine
-    DBMS.AddItem sheetSetting.Range("H" & line).Text
+    DBMS.AddItem sheetSetting.Range("H" & line).text
   Next
   DBMS.ListIndex = 0
   
@@ -46,6 +51,7 @@ Private Sub UserForm_Initialize()
   CustomerName.Value = setVal("CustomerName")
   ProjectName.Value = setVal("ProjectName")
   systemName.Value = setVal("systemName")
+  subSystemName.Value = setVal("subSystemName")
   CreateBy.Value = setVal("CreateBy")
   CreateAt.Value = setVal("CreateAt")
   outputDir.Value = setVal("outputDir")
@@ -63,13 +69,31 @@ Private Sub UserForm_Initialize()
   conMessage = ""
 End Sub
 
+
+'**************************************************************************************************
+' * イベント処理
+' *
+' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
+'**************************************************************************************************
+'==================================================================================================
+Private Sub DBName_Change()
+  
+  Select Case DBMS.Value
+    Case "MySQL"
+      Schema.Value = DBName.Value
+    Case Else
+  End Select
+
+End Sub
+
+
 '**************************************************************************************************
 ' * ボタン押下時処理
 ' *
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
 '==================================================================================================
-Private Sub outputDDL_Click()
+Private Sub Btn_outputDir_Click()
   Dim targetDir As String
   
   targetDir = Library.getDirPath(outputDir.Value)
@@ -79,9 +103,11 @@ Private Sub outputDDL_Click()
 End Sub
 
 '==================================================================================================
-Private Sub ConnectTEST_Click()
+'接続テスト
+Private Sub Btn_ConnectTEST_Click()
   Dim line As Long, endLine As Long
-
+  Dim ErrMessage As String
+  
   Select Case DBMS.Value
     '----------------------------------------------------------------------------------------------
     Case "MSAccess"
@@ -108,7 +134,7 @@ Private Sub ConnectTEST_Click()
                       " Password=" & passwd.Value & ";" & _
                       " Charset=sjis;"
       
-      Call Ctl_MySQL.dbOpen(False)
+      Call Ctl_MySQL.dbOpen(False, ErrMessage)
       If isDBOpen = False Then
         conMessage = "接続に失敗しました"
       Else
@@ -127,12 +153,14 @@ Private Sub ConnectTEST_Click()
                       "Initial Catalog=" & DBName.Value & ";" & _
                       "Trusted_Connection=Yes"
   
-  End Select
-  
-  
-  
-
-
+      Call Ctl_SQLServer.dbOpen(False, ErrMessage)
+      If isDBOpen = False Then
+        conMessage = "接続に失敗しました" & vbNewLine & ErrMessage
+      Else
+        conMessage = "接続成功!!"
+        Call Ctl_SQLServer.dbClose
+      End If
+    End Select
 End Sub
 
 
@@ -151,10 +179,29 @@ Private Sub Submit_Click()
   
   Call init.Setting
   
-'  Call Library.setValandRange("useLogicalName", CStr(useLogicalName.Value))
-'  Call Library.setValandRange("usePhysicalName", CStr(usePhysicalName.Value))
-'  Call Library.setValandRange("useImage", CStr(useImage.Value))
-'
+  Select Case DBMS.Value
+    Case "MySQL"
+      Schema.Value = DBName.Value
+    Case Else
+  End Select
+  
+  Call Library.setValandRange("CustomerName", CustomerName.Value)
+  Call Library.setValandRange("systemName", systemName.Value)
+  Call Library.setValandRange("subSystemName", subSystemName.Value)
+  Call Library.setValandRange("CreateBy", CreateBy.Value)
+  Call Library.setValandRange("CreateAt", CreateAt.Value)
+  Call Library.setValandRange("outputDir", outputDir.Value)
+
+  Call Library.setValandRange("DBMS", DBMS.Value)
+  Call Library.setValandRange("DBServer", DBServer.Value)
+  Call Library.setValandRange("DBName", DBName.Value)
+  Call Library.setValandRange("Port", Port.Value)
+  Call Library.setValandRange("Instance", Instance.Value)
+  Call Library.setValandRange("Schema", Schema.Value)
+  Call Library.setValandRange("UserId", UserId.Value)
+  Call Library.setValandRange("passwd", passwd.Value)
+
+
   Unload Me
 End Sub
 

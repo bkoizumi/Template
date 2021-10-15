@@ -34,9 +34,6 @@ End Sub
 '==================================================================================================
 'ƒLƒƒƒ“ƒZƒ‹ˆ—
 Private Sub CancelButton_Click()
-
-  Call Library.setRegistry("UserForm", "InfoTop", Me.Top)
-  Call Library.setRegistry("UserForm", "InfoLeft", Me.Left)
   
   Unload Me
 End Sub

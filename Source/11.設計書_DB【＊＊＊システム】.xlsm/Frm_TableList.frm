@@ -35,18 +35,21 @@ Private Sub UserForm_Initialize()
   With ListBox1
     .ColumnHeads = True
     .ColumnCount = 4
-    .ColumnWidths = "20;150;150;120"
-    .RowSource = "Tmp!A2:D" & sheetTmp.Cells(Rows.count, 1).End(xlUp).Row
+    .ColumnWidths = "0,80;150;150"
+    .RowSource = sheetTmp.Range("J2:M" & sheetTmp.Cells(Rows.count, 10).End(xlUp).Row).Address(External:=True)
     
-    For i = 0 To .ListCount - 1
-      For Each objShp In ActiveSheet.Shapes
-        Call Library.showDebugForm("リスト", .list(i, 1))
-        Call Library.showDebugForm("リスト", .list(i, 0))
-        If objShp.Name = "ERImg-" & .list(i, 1) Then
-          .Selected(i) = True
-        End If
-      Next
-    Next
+'    For i = 0 To .ListCount - 1
+'      For Each objShp In ActiveSheet.Shapes
+'        Call Library.showDebugForm("objShp.Name", objShp.Name, "info")
+'        Call Library.showDebugForm(".list(" & i & ", 1)", .list(i, 1), "info")
+'        Call Library.showDebugForm(".list(" & i & ", 0)", .list(i, 0), "info")
+'
+'        If objShp.Name = "ERImg-" & .list(i, 1) Then
+'          .Selected(i) = True
+'          Exit For
+'        End If
+'      Next
+'    Next
   End With
 
 End Sub
@@ -80,18 +83,14 @@ Private Sub Submit_Click()
   With ListBox1
   For i = 0 To .ListCount - 1
     If .Selected(i) = True Then
-'      Call Library.showDebugForm("リスト", .list(i, 0))
-'      Call Library.showDebugForm("リスト", .list(i, 1))
+      Call Library.showDebugForm("リスト0", .list(i, 0))
+      Call Library.showDebugForm("リスト1", .list(i, 1))
+      Call Library.showDebugForm("リスト2", .list(i, 2))
+      Call Library.showDebugForm("リスト3", .list(i, 3))
       
-      Call Ctl_ErImg.deleteImages(.list(i, 1))
-      If useLogicalName.Value = True Then
-        Call Ctl_ErImg.makeTable(.list(i, 1))
-      Else
-        Call Ctl_ErImg.makeTable(.list(i, 2))
-      End If
-      
-      Call Ctl_ErImg.makeColumnList(.list(i, 1))
-      Call Ctl_ErImg.copy(.list(i, 1))
+      Call Ctl_ErImg.getColumnInfo(.list(i, 0))
+      Call Ctl_ErImg.makeERImage
+      Call Ctl_ErImg.copy
     End If
   Next i
 End With

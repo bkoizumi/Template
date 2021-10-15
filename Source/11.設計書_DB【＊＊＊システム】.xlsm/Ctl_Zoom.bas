@@ -16,7 +16,7 @@ Function ZoomIn(Optional slctCellAddress As String)
   End If
   
   If ActiveCell.HasFormula = False Then
-    cellVal = ActiveCell.Text
+    cellVal = ActiveCell.text
   Else
     cellVal = ActiveCell.Formula
   End If
@@ -45,13 +45,13 @@ End Function
 
 
 '==================================================================================================
-Function ZoomOut(Text As String, SetTargetAddress As String)
+Function ZoomOut(text As String, SetTargetAddress As String)
   
   SetTargetAddress = Replace(SetTargetAddress, "ëIëÉZÉãÅF", "")
   
   targetBook.Activate
   targetSheet.Activate
-  Range(SetTargetAddress).Value = Text
+  Range(SetTargetAddress).Value = text
   
   Call Library.endScript
 End Function

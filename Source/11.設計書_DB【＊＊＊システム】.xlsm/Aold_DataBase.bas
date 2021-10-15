@@ -166,14 +166,14 @@ Function DataBase_Reset()
   ActiveWorkbook.Names.Add Name:="改定版", RefersTo:=Range("B6:B100")
 
   '拡大画面表示用の名称設定
-  Dim sheetName As String
+  Dim SheetName As String
   Dim endLine As Integer
 
   For Each objSheet In ActiveWorkbook.Sheets
-    sheetName = objSheet.Name
+    SheetName = objSheet.Name
 
-    If Library_CheckExcludeSheet(sheetName, 9) Then
-      endLine = Worksheets(sheetName).Cells(Rows.count, 2).End(xlUp).Row
+    If Library_CheckExcludeSheet(SheetName, 9) Then
+      endLine = Worksheets(SheetName).Cells(Rows.count, 2).End(xlUp).Row
 
       'セットステートメント
 '      ActiveWorkbook.Worksheets(SheetName).Names.Add Name:="SetStatement", RefersToR1C1:=Worksheets(SheetName).Range("D7")
@@ -192,7 +192,7 @@ Function DataBase_Reset()
 '      ActiveWorkbook.Worksheets(SheetName).Names.Add Name:="Trigger4", RefersToR1C1:=Worksheets(SheetName).Range("H" & Endline)
 '      ActiveWorkbook.Worksheets(SheetName).Names("Trigger4").Comment = "拡大画面表示用の名称設定"
 
-      ActiveWorkbook.Worksheets(sheetName).Select
+      ActiveWorkbook.Worksheets(SheetName).Select
       ActiveWindow.DisplayGridlines = False
       ActiveWindow.FreezePanes = True
 
@@ -201,8 +201,8 @@ Function DataBase_Reset()
       Selection.OnAction = ActiveWorkbook.Name & "!DisplayTableList"
 
       ActiveWorkbook.ActiveSheet.Select
-      If sheetName <> Worksheets(sheetName).Range("H5") Then
-        Worksheets(sheetName).Name = Worksheets(sheetName).Range("H5")
+      If SheetName <> Worksheets(SheetName).Range("H5") Then
+        Worksheets(SheetName).Name = Worksheets(SheetName).Range("H5")
       End If
 
       Range("A9").Select
@@ -225,15 +225,15 @@ End Function
 '***************************************************************************************************************************************************
 Sub DataBase_MakeAllSheetSQL()
 
-  Dim sheetName As String
+  Dim SheetName As String
 
 
   For Each objSheet In ActiveWorkbook.Sheets
 
-    sheetName = objSheet.Name
+    SheetName = objSheet.Name
 
-    If Library_CheckExcludeSheet(sheetName, 9) Then
-      Worksheets(sheetName).Select
+    If Library_CheckExcludeSheet(SheetName, 9) Then
+      Worksheets(SheetName).Select
       Range("C9").Select
       SetDisplyAlertFlg = False
       DataBase_MakeSQL (False)
@@ -1380,7 +1380,7 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
         Else
           Range("E" & NowLine).AddComment
           Range("E" & NowLine).Comment.Visible = False
-          Range("E" & NowLine).Comment.Text Text:=Range("E" & NowLine).Value
+          Range("E" & NowLine).Comment.text text:=Range("E" & NowLine).Value
           Range("E" & NowLine).Style = "カラム変更"
         End If
       End If
@@ -1401,7 +1401,7 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
         Else
           Range("G" & NowLine).AddComment
           Range("G" & NowLine).Comment.Visible = False
-          Range("G" & NowLine).Comment.Text Text:=Range("G" & NowLine).Value
+          Range("G" & NowLine).Comment.text text:=Range("G" & NowLine).Value
           Range("G" & NowLine).Style = "カラム変更"
         End If
       End If
@@ -1441,7 +1441,7 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
         Else
           Range("H" & NowLine).AddComment
           Range("H" & NowLine).Comment.Visible = False
-          Range("H" & NowLine).Comment.Text Text:=" " & Range("H" & NowLine).Value
+          Range("H" & NowLine).Comment.text text:=" " & Range("H" & NowLine).Value
           Range("H" & NowLine).Style = "カラム変更"
         End If
       End If
@@ -1484,7 +1484,7 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
         Else
           Range("O" & NowLine).AddComment
           Range("O" & NowLine).Comment.Visible = False
-          Range("O" & NowLine).Comment.Text Text:=" " & Range("O" & NowLine).Value
+          Range("O" & NowLine).Comment.text text:=" " & Range("O" & NowLine).Value
           Range("O" & NowLine).Style = "カラム変更"
         End If
       End If
@@ -1514,7 +1514,7 @@ Function DataBase_GetColumn(SetDisplyProgressBarFlg As Boolean)
         Else
           Range("P" & NowLine).AddComment
           Range("P" & NowLine).Comment.Visible = False
-          Range("P" & NowLine).Comment.Text Text:=" " & Range("P" & NowLine).Value
+          Range("P" & NowLine).Comment.text text:=" " & Range("P" & NowLine).Value
           Range("P" & NowLine).Style = "カラム変更"
         End If
       End If
@@ -1859,7 +1859,7 @@ Function DataBase_MakeTableList()
   Next
   Worksheets("変更履歴").Select
   endLine = Cells(Rows.count, 4).End(xlUp).Row
-  Range("更新者") = Range(setVal("Cell_logicalName") & endLine)
+  Range("更新者") = Range("B" & endLine)
 
   endLine = Cells(Rows.count, 3).End(xlUp).Row
   Range("更新日") = Range("C" & endLine)

@@ -46,7 +46,7 @@ End Function
 'シート一覧メニュー
 Function getSheetsList(control As IRibbonControl, ByRef returnedVal)
   Dim DOMDoc As Object, Menu As Object, Button As Object, subMenu As Object
-  Dim sheetName As Worksheet
+  Dim SheetName As Worksheet
   
   Call init.Setting
    
@@ -64,35 +64,33 @@ Function getSheetsList(control As IRibbonControl, ByRef returnedVal)
   Menu.SetAttribute "xmlns", "http://schemas.microsoft.com/office/2009/07/customui"
   Menu.SetAttribute "itemSize", "normal"
 
-  For Each sheetName In ActiveWorkbook.Sheets
-    Select Case sheetName.Name
-      Case "設定", "設定-MySQL", "設定-ACC", "DataType", "Tmp", "ConLine", "Notice", "コピー用"
-      Case Else
-        Set Button = DOMDoc.createElement("button")
-        With Button
-          sheetNameID = sheetName.Name
-          .SetAttribute "id", encode(sheetName.Name)
-          .SetAttribute "label", sheetName.Name
-        
-        If Sheets(sheetName.Name).Visible = True Then
-          .SetAttribute "imageMso", "HeaderFooterSheetNameInsert"
-        ElseIf Sheets(sheetName.Name).Visible <> True Then
-          .SetAttribute "imageMso", "SheetProtect"
-        
-        End If
-        If ActiveWorkbook.ActiveSheet.Name = sheetName.Name Then
-          .SetAttribute "imageMso", "ExcelSpreadsheetInsert"
-        End If
-          .SetAttribute "onAction", "Ctl_Ribbon.selectActiveSheet"
-        End With
-        Menu.AppendChild Button
-        Set Button = Nothing
-    
-    End Select
+  For Each SheetName In ActiveWorkbook.Sheets
+    If SheetName.Name Like "<*>" Then
+    Else
+      Set Button = DOMDoc.createElement("button")
+      With Button
+        sheetNameID = SheetName.Name
+        .SetAttribute "id", encode(SheetName.Name)
+        .SetAttribute "label", SheetName.Name
+      
+      If Sheets(SheetName.Name).Visible = True Then
+        .SetAttribute "imageMso", "HeaderFooterSheetNameInsert"
+      ElseIf Sheets(SheetName.Name).Visible <> True Then
+        .SetAttribute "imageMso", "SheetProtect"
+      
+      End If
+      If ActiveWorkbook.ActiveSheet.Name = SheetName.Name Then
+        .SetAttribute "imageMso", "ExcelSpreadsheetInsert"
+      End If
+        .SetAttribute "onAction", "Ctl_Ribbon.selectActiveSheet"
+      End With
+      Menu.AppendChild Button
+      Set Button = Nothing
+    End If
   Next
   DOMDoc.AppendChild Menu
   
-  'Call Library.showDebugForm(DOMDoc.XML)
+'  Call Library.showDebugForm(DOMDoc.XML)
   
   returnedVal = DOMDoc.XML
   Set Menu = Nothing
@@ -119,7 +117,7 @@ End Function
 Function selectActiveSheet(control As IRibbonControl)
   Dim sheetNameID As String
   Dim sheetCount As Integer
-  Dim sheetName As Worksheet
+  Dim SheetName As Worksheet
   
   Call Library.startScript
   sheetNameID = decode(control.ID)
@@ -129,8 +127,8 @@ Function selectActiveSheet(control As IRibbonControl)
   End If
   
   sheetCount = 1
-  For Each sheetName In ActiveWorkbook.Sheets
-    If Sheets(sheetName.Name).Visible = True And sheetName.Name = sheetNameID Then
+  For Each SheetName In ActiveWorkbook.Sheets
+    If Sheets(SheetName.Name).Visible = True And SheetName.Name = sheetNameID Then
       Exit For
     Else
       sheetCount = sheetCount + 1
@@ -191,15 +189,29 @@ End Function
 
 
 
-
-
-' お気に入りメニュー作成---------------------------------------------------------------------------
-Function FavoriteMenu(control As IRibbonControl, ByRef returnedVal)
+'==================================================================================================
+'開発用メニュー
+Function setDeveloperMenu(control As IRibbonControl, ByRef returnedVal)
   Dim DOMDoc As Object, Menu As Object, Button As Object, subMenu As Object
-  Dim regLists As Variant, i As Long
-  Dim line As Long, endLine As Long
-  Dim objFSO As New FileSystemObject
-   
+  Dim menuList(3, 2) As String
+  Dim i As Long
+  
+  menuList(0, 0) = "initialization"
+  menuList(0, 1) = "初期化"
+  menuList(0, 2) = "AccessRefreshAllLists"
+  
+  menuList(1, 0) = "Unprotect"
+  menuList(1, 1) = "保護解除"
+  menuList(1, 2) = "SheetProtect"
+  
+  menuList(2, 0) = "endScript"
+  menuList(2, 1) = "画面更新"
+  menuList(2, 2) = "MacroPlay"
+  
+  menuList(3, 0) = "reset"
+  menuList(3, 1) = "やり直し"
+  menuList(3, 2) = "MacroPlay"
+  
   Call init.Setting
    
   If ribbonUI Is Nothing Then
@@ -211,154 +223,52 @@ Function FavoriteMenu(control As IRibbonControl, ByRef returnedVal)
   End If
   
   Set DOMDoc = CreateObject("Msxml2.DOMDocument")
-  Set Menu = DOMDoc.createElement("menu") ' menuの作成
+  Set Menu = DOMDoc.createElement("menu")
 
   Menu.SetAttribute "xmlns", "http://schemas.microsoft.com/office/2009/07/customui"
   Menu.SetAttribute "itemSize", "normal"
 
-  endLine = sheetFavorite.Cells(Rows.count, 1).End(xlUp).Row
-  For line = 2 To endLine
+  For i = 0 To UBound(menuList, 1)
     Set Button = DOMDoc.createElement("button")
     With Button
-      .SetAttribute "id", "Favorite_" & line
-      .SetAttribute "label", objFSO.GetFileName(sheetFavorite.Range("A" & line))
-      .SetAttribute "imageMso", "Favorites"
-      .SetAttribute "onAction", "OpenFavoriteList"
+      .SetAttribute "id", menuList(i, 0)
+      .SetAttribute "label", menuList(i, 1)
+      .SetAttribute "imageMso", menuList(i, 2)
+      .SetAttribute "onAction", "Ctl_Ribbon.runDeveloperMenu"
     End With
+    
     Menu.AppendChild Button
     Set Button = Nothing
-  
   Next
+  
+  
   DOMDoc.AppendChild Menu
-  returnedVal = DOMDoc.XML
+  
 '  Call Library.showDebugForm(DOMDoc.XML)
   
+  returnedVal = DOMDoc.XML
   Set Menu = Nothing
   Set DOMDoc = Nothing
+  
+   ribbonUI.Invalidate
 End Function
-
 
 '--------------------------------------------------------------------------------------------------
-Function OpenFavoriteList(control As IRibbonControl)
-  Dim fileNamePath As String
-  Dim line As Long
+Function runDeveloperMenu(control As IRibbonControl)
   
-  line = Replace(control.ID, "Favorite_", "")
-  fileNamePath = sheetFavorite.Range("A" & line)
-  
-  If Library.chkFileExists(fileNamePath) Then
-    Workbooks.Open fileName:=fileNamePath
-  End If
-  Application.Goto Reference:=Range("A1"), Scroll:=True
-End Function
-
-
-
-
-
-'Label 設定----------------------------------------------------------------------------------------
-Public Sub getLabel(control As IRibbonControl, ByRef setRibbonVal)
-  
-  Call init.Setting
-  setRibbonVal = Replace(ribbonVal("Lbl_" & control.ID), "<BR>", vbNewLine)
-End Sub
-
-
-'Action 設定---------------------------------------------------------------------------------------
-Sub getAction(control As IRibbonControl)
-  Dim setRibbonVal As Variant
-  
-  Call init.Setting
-  setRibbonVal = ribbonVal("Act_" & control.ID)
-  
-  If setRibbonVal Like "*Ctl_Ribbon*" Then
-    Call Application.run(setRibbonVal, control)
-  
-  ElseIf setRibbonVal = "" Then
-    Call Library.showDebugForm("Act_" & control.ID)
-  Else
-    Call Application.run(setRibbonVal)
-  End If
-End Sub
-
-
-'Supertip 設定-------------------------------------------------------------------------------------
-Public Sub getSupertip(control As IRibbonControl, ByRef setRibbonVal)
-  Call init.Setting
-  setRibbonVal = ribbonVal("Sup_" & control.ID)
-End Sub
-
-
-'Description 設定----------------------------------------------------------------------------------
-Public Sub getDescription(control As IRibbonControl, ByRef setRibbonVal)
-  Call init.Setting
-  setRibbonVal = Replace(ribbonVal("Dec_" & control.ID), "<BR>", vbNewLine)
-
-End Sub
-
-'getImageMso 設定----------------------------------------------------------------------------------
-Public Sub getImage(control As IRibbonControl, ByRef image)
-  Call init.Setting
-  image = ribbonVal("Img_" & control.ID)
-End Sub
-
-
-'size 設定-----------------------------------------------------------------------------------------
-Public Sub getSize(control As IRibbonControl, ByRef setRibbonVal)
-  Dim getVal As String
-  
-  Call init.Setting
-  setRibbonVal = ribbonVal("Siz_" & control.ID)
-  Select Case setRibbonVal
-    Case "large"
-      setRibbonVal = 1
-    Case "normal"
-      setRibbonVal = 0
+  Select Case control.ID
+    Case "initialization"
+      'Call Ctl_DeveloperMenu.initialization
+    Case "Unprotect"
+      'Call Ctl_DeveloperMenu.Unprotect
+    Case "endScript"
+      'Call Ctl_DeveloperMenu.endScript
+    Case "reset"
+      Call Ctl_DeveloperMenu.Reset
     Case Else
-      setRibbonVal = 0
+    
   End Select
-End Sub
 
-'--------------------------------------------------------------------------------------------------
-'有効/無効切り替え
-Function getEnabled(control As IRibbonControl, ByRef returnedVal)
-  Dim wb As Workbook
-  Call init.Setting
-  
-  If Workbooks.count = 0 Then
-    returnedVal = False
-  ElseIf setVal("debugMode") = "develop" Then
-    returnedVal = True
-  Else
-    returnedVal = False
-  End If
-  
-End Function
-
-
-'--------------------------------------------------------------------------------------------------
-Sub getVisible(control As IRibbonControl, ByRef returnedVal)
-  Call init.Setting
-  returnedVal = Library.getRegistry("CustomRibbon")
-End Sub
-
-
-'--------------------------------------------------------------------------------------------------
-Function RefreshRibbon()
-  #If VBA7 And Win64 Then
-    Set ribbonUI = GetRibbon(CLngPtr(Library.getRegistry("ribbonUI")))
-  #Else
-    Set ribbonUI = GetRibbon(CLng(Library.getRegistry("ribbonUI")))
-  #End If
-  ribbonUI.Invalidate
-
-End Function
-
-'中央揃え------------------------------------------------------------------------------------------
-Function setCenter(control As IRibbonControl)
-  If typeName(Selection) = "Range" Then
-    Selection.HorizontalAlignment = xlCenterAcrossSelection
-  End If
 End Function
 
 
@@ -369,7 +279,21 @@ End Function
 '**************************************************************************************************
 '==================================================================================================
 Function showOption(control As IRibbonControl)
+  
+  '処理開始--------------------------------------
+  Const funcName As String = "Ctl_Ribbon.ClearAll"
+  Call Library.startScript
+  Call init.Setting
+  runFlg = True
+  Call Library.showDebugForm("StartFun", funcName, "info")
+  '----------------------------------------------
   Call Ctl_Option.showOption
+
+  '処理終了--------------------------------------
+  Call Library.endScript
+  Call init.unsetting(True)
+  '----------------------------------------------
+
 End Function
 
 '==================================================================================================
@@ -381,14 +305,14 @@ Function ClearAll(control As IRibbonControl)
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(funcName & "==============================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
   
   Call Ctl_Option.ClearAll
+  sheetCopyTable.Select
   
   '処理終了--------------------------------------
   Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
   Call Library.endScript
   Call init.unsetting(True)
@@ -404,7 +328,17 @@ End Function
 'シート追加
 Function addSheet(control As IRibbonControl)
   Call Ctl_Sheet.showAddSheetOption
-  Call Ctl_Sheet.addSheet
+  Call Ctl_Common.addSheet(sheetCopyTable.Range("F8").Value)
+  
+  sheetCopyTable.Range("F8") = ""
+  sheetCopyTable.Range("F9") = ""
+  sheetCopyTable.Range("F10") = ""
+  sheetCopyTable.Range("F11") = ""
+  sheetCopyTable.Range("AO3") = ""
+  sheetCopyTable.Range("AO1") = ""
+  sheetCopyTable.Range("AX1") = ""
+  
+  
 End Function
 
 '==================================================================================================
@@ -420,17 +354,14 @@ Function makeERImage(control As IRibbonControl)
   Const funcName As String = "Ctl_Ribbon.getDatabaseInfo"
   Call Library.startScript
   Call init.Setting
-  Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(funcName & "=========================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
 
   Call Ctl_ErImg.showUserForm
   
   
   '処理終了--------------------------------------
-  Call Library.showDebugForm("=================================================================")
-  Call Ctl_ProgressBar.showEnd
   Call Library.endScript
   Call init.unsetting(True)
   '----------------------------------------------
@@ -444,17 +375,15 @@ Function makeER_ConnectLine(control As IRibbonControl)
   Const funcName As String = "Ctl_Ribbon.getDatabaseInfo"
   Call Library.startScript
   Call init.Setting
-  Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(funcName & "=========================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
-   
+  
+  
   Call Ctl_ErImg.ConnectLine(CStr(control.ID))
   
-  
+  Application.Goto Reference:=Range("A1"), Scroll:=True
   '処理終了--------------------------------------
-  Call Library.showDebugForm("=================================================================")
-  Call Ctl_ProgressBar.showEnd
   Call Library.endScript
   Call init.unsetting(True)
   '----------------------------------------------
@@ -469,6 +398,7 @@ End Function
 ' * @author Bunpei.Koizumi<bunpei.koizumi@gmail.com>
 '**************************************************************************************************
 '==================================================================================================
+'一括取得
 Function getDatabaseInfo(control As IRibbonControl)
   
   '処理開始--------------------------------------
@@ -477,7 +407,7 @@ Function getDatabaseInfo(control As IRibbonControl)
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(funcName & "=========================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
 
   Select Case setVal("DBMS")
@@ -490,17 +420,17 @@ Function getDatabaseInfo(control As IRibbonControl)
       Call Ctl_MySQL.dbClose
       
     Case "PostgreSQL"
-      'Call Ctl_Access.getDatabaseInfo
       
     Case "SQLServer"
-      'Call Ctl_SQLServer.getDatabaseInfo
+      Call Ctl_SQLServer.dbOpen
+      Call Ctl_SQLServer.getDatabaseInfo
+      Call Ctl_SQLServer.dbClose
       
     Case Else
   End Select
   
   '処理終了--------------------------------------
 '  Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
   Call Library.endScript
   Call init.unsetting(True)
@@ -508,6 +438,7 @@ Function getDatabaseInfo(control As IRibbonControl)
 End Function
 
 '==================================================================================================
+'アクティブシートのテーブル情報のみ取得
 Function getTableInfo(control As IRibbonControl)
   
   '処理開始--------------------------------------
@@ -516,7 +447,7 @@ Function getTableInfo(control As IRibbonControl)
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(funcName & "==========================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
   
   Select Case setVal("DBMS")
@@ -532,7 +463,9 @@ Function getTableInfo(control As IRibbonControl)
       Ctl_Access.getTableInfo
       
     Case "SQLServer"
+      Call Ctl_SQLServer.dbOpen
       Call Ctl_SQLServer.getTableInfo
+      Call Ctl_SQLServer.dbClose
       
     Case Else
   End Select
@@ -540,7 +473,6 @@ Function getTableInfo(control As IRibbonControl)
   '処理終了--------------------------------------
   
 '  Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
   Call Library.endScript
   Call init.unsetting(True)
@@ -558,7 +490,7 @@ Function CreateTableInfo(control As IRibbonControl)
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(funcName & "=======================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
   
   Select Case setVal("DBMS")
@@ -574,26 +506,22 @@ Function CreateTableInfo(control As IRibbonControl)
 '      Ctl_Access.getTableInfo
       
     Case "SQLServer"
-'      Call Ctl_SQLServer.CreateTable
-      
+      Call Ctl_SQLServer.dbOpen
+      Call Ctl_SQLServer.CreateTable
+      Call Ctl_SQLServer.dbClose
+
     Case Else
   End Select
   
   '処理終了--------------------------------------
   
 '  Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
   Call Library.endScript
   Call init.unsetting(True)
   '----------------------------------------------
   
 End Function
-
-
-
-
-
 
 
 '==================================================================================================
@@ -605,27 +533,24 @@ Function makeDDL(control As IRibbonControl)
   Call init.Setting
   Call Ctl_ProgressBar.showStart
   runFlg = True
-  Call Library.showDebugForm(funcName & "=======================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
   
   Select Case setVal("DBMS")
     Case "MSAccess"
     
     Case "MySQL"
-      Call Ctl_MySQL.dbOpen
       Call Ctl_MySQL.makeDDL
-      Call Ctl_MySQL.dbClose
       
     Case "PostgreSQL"
       
     Case "SQLServer"
+      Call Ctl_SQLServer.makeDDL
       
     Case Else
   End Select
   
   '処理終了--------------------------------------
-  
-  Call Library.showDebugForm("=================================================================")
   Call Ctl_ProgressBar.showEnd
   Call Library.endScript
   Call init.unsetting(True)

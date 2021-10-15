@@ -5,16 +5,18 @@ Public targetBook As Workbook
 
 
 'ワークシート用変数------------------------------
-Public targetSheet    As Worksheet
+Public targetSheet      As Worksheet
 
-Public sheetSetting   As Worksheet
-Public sheetNotice    As Worksheet
-Public sheetDataType  As Worksheet
-Public sheetTmp       As Worksheet
-Public sheetCopy      As Worksheet
-Public sheetTblList   As Worksheet
-Public sheetERImage   As Worksheet
-Public sheetCopyLine   As Worksheet
+Public sheetSetting     As Worksheet
+Public sheetNotice      As Worksheet
+Public sheetdefaultVal  As Worksheet
+Public sheetDataType    As Worksheet
+Public sheetTmp         As Worksheet
+Public sheetCopyTable   As Worksheet
+Public sheetCopyView    As Worksheet
+Public sheetTblList     As Worksheet
+Public sheetERImage     As Worksheet
+Public sheetCopyLine    As Worksheet
 
 
 'グローバル変数----------------------------------
@@ -22,7 +24,7 @@ Public Const thisAppName = "Addin For Excel Template"
 Public Const thisAppVersion = "V1.0-beta.1"
 
 Public ConnectServer      As String
-Public Const startLine    As Long = 9
+Public Const startLine    As Long = 16
 Public isDBOpen           As Boolean
 Public runFlg             As Boolean
 
@@ -76,7 +78,8 @@ Function unsetting(Optional flg As Boolean = False)
   Set sheetSetting = Nothing
   Set sheetNotice = Nothing
   Set sheetDataType = Nothing
-  Set sheetCopy = Nothing
+  Set sheetCopyTable = Nothing
+  Set sheetCopyView = Nothing
   Set sheetTblList = Nothing
   
   Set setLine = Nothing
@@ -108,18 +111,24 @@ Function Setting(Optional reCheckFlg As Boolean)
   Set ThisBook = ThisWorkbook
   
   'ワークシート名の設定
-  Set sheetSetting = ThisBook.Worksheets("設定-MySQL")
+  'Set sheetSetting = ThisBook.Worksheets("設定-SQLserver")
+  Set sheetSetting = ThisBook.Worksheets("<設定-MySQL>")
   'Set sheetSetting = ThisBook.Worksheets("設定-ACC")
   
   
-  Set sheetDataType = ThisBook.Worksheets("DataType")
-  Set sheetTmp = ThisBook.Worksheets("Tmp")
-  Set sheetNotice = ThisBook.Worksheets("Notice")
+  Set sheetDataType = ThisBook.Worksheets("<DataType>")
+  Set sheetdefaultVal = ThisBook.Worksheets("<defaultVal>")
   
-  Set sheetCopy = ThisBook.Worksheets("CopySheet")
-  Set sheetTblList = ThisBook.Worksheets("TBLリスト")
-  Set sheetERImage = ThisBook.Worksheets("ER図")
-  Set sheetCopyLine = ThisBook.Worksheets("CopyLine")
+  Set sheetTmp = ThisBook.Worksheets("<Tmp>")
+  Set sheetNotice = ThisBook.Worksheets("<Notice>")
+  
+  Set sheetCopyTable = ThisBook.Worksheets("<CopyTable>")
+  Set sheetCopyView = ThisBook.Worksheets("<CopyView>")
+  Set sheetCopyLine = ThisBook.Worksheets("<CopyLine>")
+  
+'  Set sheetTblList = ThisBook.Worksheets("TBLリスト")
+  Set sheetERImage = ThisBook.Worksheets("2.ER図")
+  
   
   logFile = ThisWorkbook.Path & "\ExcelMacro.log"
         
@@ -128,7 +137,7 @@ Function Setting(Optional reCheckFlg As Boolean)
   Set setLine = CreateObject("Scripting.Dictionary")
   For line = 5 To sheetSetting.Cells(Rows.count, 4).End(xlUp).Row
     If sheetSetting.Range("D" & line) <> "" Then
-      setLine.Add sheetSetting.Range("D" & line).Text, sheetSetting.Range("E" & line).Text
+      setLine.Add sheetSetting.Range("D" & line).text, sheetSetting.Range("E" & line).text
     End If
   Next
   
@@ -137,10 +146,25 @@ Function Setting(Optional reCheckFlg As Boolean)
   
   For line = 5 To sheetSetting.Cells(Rows.count, 1).End(xlUp).Row
     If sheetSetting.Range("A" & line) <> "" Then
-      setVal.Add sheetSetting.Range("A" & line).Text, sheetSetting.Range("B" & line).Text
+      setVal.Add sheetSetting.Range("A" & line).text, sheetSetting.Range("B" & line).text
     End If
   Next
-
+    
+  Select Case setVal("LogLevel")
+    Case "none"
+      setVal("LogLevel") = 0
+    Case "warning"
+      setVal("LogLevel") = 1
+    Case "notice"
+      setVal("LogLevel") = 2
+    Case "info"
+      setVal("LogLevel") = 3
+    Case "debug"
+      setVal("LogLevel") = 4
+    Case Else
+  End Select
+    
+  
   Select Case setVal("DBMS")
     Case "MSAccess"
       accFileName = Library.getFileInfo(setVal("DBServer"), , "fileName")
@@ -219,7 +243,7 @@ Function 名前定義()
   Next
   
   'Book用の設定
-  For colLine = 7 To 11
+  For colLine = 7 To 10
     endLine = sheetSetting.Cells(Rows.count, colLine).End(xlUp).Row
     sheetSetting.Range(sheetSetting.Cells(5, colLine), sheetSetting.Cells(endLine, colLine)).Name = sheetSetting.Cells(4, colLine)
   Next
@@ -230,6 +254,15 @@ Function 名前定義()
     sheetDataType.Range(sheetDataType.Cells(3, colLine), sheetDataType.Cells(endLine, colLine)).Name = sheetDataType.Cells(1, colLine)
   Next
   
+  'defaultVal用の設定
+  For colLine = 1 To 4
+    endLine = sheetdefaultVal.Cells(Rows.count, colLine).End(xlUp).Row
+    If endLine = 1 Then
+      sheetdefaultVal.Range(sheetdefaultVal.Cells(2, colLine), sheetdefaultVal.Cells(3, colLine)).Name = "defVal_" & sheetdefaultVal.Cells(1, colLine)
+    Else
+      sheetdefaultVal.Range(sheetdefaultVal.Cells(2, colLine), sheetdefaultVal.Cells(endLine, colLine)).Name = "defVal_" & sheetdefaultVal.Cells(1, colLine)
+    End If
+  Next
   
   
   Exit Function
@@ -248,7 +281,7 @@ End Function
 '==================================================================================================
 Function シート非表示()
 
-  If setVal("debugMode") <> "develop" Then
+  If setVal("LogLevel") <> "develop" Then
     Worksheets("設定").Visible = xlSheetVeryHidden
     Worksheets("Notice").Visible = xlSheetVeryHidden
     Worksheets("DataType").Visible = xlSheetVeryHidden
@@ -272,19 +305,19 @@ End Function
 
 '==================================================================================================
 Function シート保護()
-  Dim sheetName As String
+  Dim SheetName As String
   Dim tempSheet As Object
 
   Call init.Setting
   Call Library.showDebugForm("sheetProtect--------------------------")
   For Each tempSheet In Sheets
-    sheetName = tempSheet.Name
-    If Not (sheetName Like "[設定,Notice,DataType]*") Then
-      Call Library.showDebugForm("  " & sheetName)
+    SheetName = tempSheet.Name
+    If Not (SheetName Like "[設定,Notice,DataType]*") Then
+      Call Library.showDebugForm("  " & SheetName)
       
       DoEvents
-      ThisWorkbook.Worksheets(sheetName).Protect DrawingObjects:=True, Contents:=True, Scenarios:=True, UserInterfaceOnly:=True, passWord:=thisAppPasswd
-      ThisWorkbook.Worksheets(sheetName).EnableSelection = xlNoRestrictions
+      ThisWorkbook.Worksheets(SheetName).Protect DrawingObjects:=True, Contents:=True, Scenarios:=True, UserInterfaceOnly:=True, passWord:=thisAppPasswd
+      ThisWorkbook.Worksheets(SheetName).EnableSelection = xlNoRestrictions
     End If
   Next
   Call Library.showDebugForm("--------------------------------------")
@@ -292,18 +325,18 @@ End Function
 
 '==================================================================================================
 Function シート保護解除()
-  Dim sheetName As String
+  Dim SheetName As String
   Dim tempSheet As Object
 
   Call init.Setting
   Call Library.showDebugForm("sheetUnprotect--------------------------")
   For Each tempSheet In Sheets
-    sheetName = tempSheet.Name
-    If Not (sheetName Like "[設定,Notice,DataType]*") Then
-      Call Library.showDebugForm("  " & sheetName)
+    SheetName = tempSheet.Name
+    If Not (SheetName Like "[設定,Notice,DataType]*") Then
+      Call Library.showDebugForm("  " & SheetName)
       
       DoEvents
-      ThisWorkbook.Worksheets(sheetName).Unprotect passWord:=thisAppPasswd
+      ThisWorkbook.Worksheets(SheetName).Unprotect passWord:=thisAppPasswd
     End If
   Next
   Call Library.showDebugForm("----------------------------------------")

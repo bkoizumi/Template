@@ -20,22 +20,30 @@ Function ClearAll()
     Call init.Setting
     Call Ctl_ProgressBar.showStart
   End If
+  PrgP_Max = 2
+  PrgP_Cnt = 1
   
-  Call Library.showDebugForm(funcName & "==============================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
 
-
+  line = 1
+  endLine = Sheets.count
   For Each tempSheet In Sheets
     Select Case tempSheet.Name
-      Case "設定-MySQL", "設定-ACC", "設定", "Notice", "DataType", "コピー用", "表紙", "TBLリスト", "変更履歴", "ER図", "Tmp"
+      Case "表紙", "変更履歴", "1.エンティティ", "2.ER図", "5.容量計算", "空白"
       Case Else
-        Call Library.showDebugForm("シート削除：" & tempSheet.Name)
-        Worksheets(tempSheet.Name).Delete
+        If tempSheet.Name Like "<*>" Then
+        Else
+          Call Library.showDebugForm("シート削除：" & tempSheet.Name)
+          Worksheets(tempSheet.Name).Delete
+        End If
     End Select
+    Call Ctl_ProgressBar.showBar(thisAppName, PrgP_Cnt, PrgP_Max, line, endLine, "データクリア")
+    line = line + 1
   Next
 
   '処理終了--------------------------------------
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   If runFlg = False Then
     Application.Goto Reference:=Range("A1"), Scroll:=True
     Call Ctl_ProgressBar.showEnd
@@ -62,24 +70,21 @@ Function showOption()
   If runFlg = False Then
     Call Library.startScript
     Call init.Setting
-    Call Ctl_ProgressBar.showStart
   End If
   
-  Call Library.showDebugForm(funcName & "==============================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
-
-
- 
-  With Frm_opTION
+  
+  With Frm_setOption
     .StartUpPosition = 1
+    .Caption = thisAppName & " [" & thisAppVersion & "]"
     .Show
   End With
 
   '処理終了--------------------------------------
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   If runFlg = False Then
     Application.Goto Reference:=Range("A1"), Scroll:=True
-    Call Ctl_ProgressBar.showEnd
     Call Library.endScript
     Call init.unsetting(True)
   End If
@@ -104,7 +109,7 @@ Function setOption()
     Call Ctl_ProgressBar.showStart
   End If
   
-  Call Library.showDebugForm(funcName & "==============================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
 
 
@@ -121,7 +126,7 @@ Function setOption()
 
 
   '処理終了--------------------------------------
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   If runFlg = False Then
     Application.Goto Reference:=Range("A1"), Scroll:=True
     Call Ctl_ProgressBar.showEnd

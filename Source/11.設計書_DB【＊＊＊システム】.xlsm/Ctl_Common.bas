@@ -21,38 +21,22 @@ Function ClearData()
   '--------------------------
   
   Call init.Setting
-  Call Library.showDebugForm(funcName & "=============================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   
   endLine = Cells(Rows.count, 1).End(xlUp).Row
   line = startLine
+  Call Ctl_Common.chkRowStartLine
   
-  Do Until Range("A" & line) = "End"
-    If Range("A" & line) = "" Then
-      Rows(line & ":" & line).Delete Shift:=xlUp
-      line = line - 1
-    ElseIf Range("A" & line) = "Column" Then
-      On Error Resume Next
-      Range("B" & line & ":AZ" & line).SpecialCells(xlCellTypeConstants, 23).ClearContents
-      Rows(line & ":" & line).RowHeight = setVal("defaultRowHeight")
-      On Error GoTo catchError
-    
-    ElseIf Range("A" & line) = "IndexColumn" Then
-      On Error Resume Next
-      Range("B" & line) = ""
-      Range("D" & line & ":AZ" & line).SpecialCells(xlCellTypeConstants, 23).ClearContents
-      Rows(line & ":" & line).RowHeight = setVal("defaultRowHeight")
-      On Error GoTo catchError
-    
-    
-    End If
-    Call Ctl_ProgressBar.showBar(thisAppName, 1, PrgP_Max, line, endLine, "データクリア")
-    
-    line = line + 1
-  Loop
-  'Columns("M:S").EntireColumn.Hidden = True
+  On Error Resume Next
+  Range("B" & startLine & ":BB" & setLine("columnEnd")).SpecialCells(xlCellTypeConstants, 23).ClearContents
+  Rows(startLine & ":" & setLine("columnEnd")).RowHeight = setVal("defaultRowHeight")
+  
+  Range("B" & setLine("indexStart") & ":BB" & setLine("indexEnd")).SpecialCells(xlCellTypeConstants, 23).ClearContents
+  Rows(setLine("indexStart") & ":" & setLine("indexEnd")).RowHeight = setVal("defaultRowHeight")
+  
   
   '処理終了--------------------------------------
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
@@ -68,17 +52,28 @@ End Function
 
 
 '==================================================================================================
-Function addRow(line As Long)
-
-  If line >= 47 Then
+Function addRow(ByVal line As Long)
+  
+  If Range("BF" & line + 1) = "ColumEnd" Then
     Rows(line & ":" & line).copy
     Rows(line & ":" & line).Insert Shift:=xlDown
-    Range("A" & line) = ""
     Application.CutCopyMode = False
+    
+    Range("BF" & line) = "addLine"
+    Call Library.showDebugForm("Ctl_Common.addRow", "true", "info")
+    Call Ctl_Common.chkRowStartLine
+  
+  ElseIf Range("BF" & line + 2) = "IndexEnd" Then
+    Rows(line + 1 & ":" & line + 1).copy
+    Rows(line + 1 & ":" & line + 1).Insert Shift:=xlDown
+    Application.CutCopyMode = False
+    
+    
+    Range("BF" & line + 1) = "addLine"
+    Call Library.showDebugForm("Ctl_Common.addRow", "true", "info")
+    Call Ctl_Common.chkRowStartLine
   End If
 End Function
-
-
 
 
 '==================================================================================================
@@ -86,24 +81,31 @@ Function chkRowStartLine()
   Dim line As Long, endLine As Long
   Dim IndexRow As Long
   
+  If setLine Is Nothing Then
+    Call init.Setting
+  End If
   endLine = Cells(Rows.count, 1).End(xlUp).Row
   For line = startLine To endLine
-    Select Case Range("A" & line)
-      Case "spacer1"
-        setLine("columnEnd") = line - 1
+    If Range("BF" & line) = "ColumEnd" Then
+      setLine("columnEnd") = line
       
-      Case "IndexStart"
-        setLine("indexStart") = line + 1
+    ElseIf Range("BF" & line) = "IndexStart" Then
+      setLine("indexStart") = line
+    
+    ElseIf Range("BF" & line) = "IndexEnd" Then
+      setLine("indexEnd") = line
+      Exit For
       
-      Case "TriggerStart"
+    ElseIf Range("BF" & line) = "TriggerStart" Then
         setLine("triggerStart") = line + 1
-    End Select
+    End If
     DoEvents
   Next
   
-  Call Library.showDebugForm("columnEnd   ", setLine("columnEnd"))
-  Call Library.showDebugForm("indexStart  ", setLine("indexStart"))
-  Call Library.showDebugForm("triggerStart", setLine("triggerStart"))
+  Call Library.showDebugForm("columnEnd   ", setLine("columnEnd"), "info")
+  Call Library.showDebugForm("indexStart  ", setLine("indexStart"), "info")
+  Call Library.showDebugForm("indexEnd    ", setLine("indexEnd"), "info")
+  Call Library.showDebugForm("triggerStart", setLine("triggerStart"), "info")
 
 End Function
 
@@ -111,23 +113,77 @@ End Function
 '==================================================================================================
 Function addSheet(newSheetName As String)
   
+  Const funcName As String = "Ctl_Common.addSheet"
   On Error GoTo catchError
   
-  If Library.chkSheetExists(newSheetName) = False Then
-    sheetCopy.copy After:=Worksheets(Worksheets.count)
-    ThisWorkbook.Sheets(Worksheets.count).Name = newSheetName
-  End If
-  Call Ctl_ProgressBar.showBar(thisAppName, PrgP_Cnt, PrgP_Max, 1, 2, "シート追加")
+  If newSheetName Like "3.*" Then
   
-  Sheets(newSheetName).Select
-  Range(setVal("Cell_UpdateBy")) = Application.UserName
-  Range(setVal("Cell_UpdateAt")) = Format(Date, "yyyy/mm/dd")
-'  Range("W9:AA48").Merge True
+  Else
+    newSheetName = "3." & newSheetName
+  End If
+  
+  If Library.chkSheetExists(newSheetName) = False Then
+    sheetCopyTable.copy before:=Worksheets("5.容量計算")
+    
+    If LenB(StrConv(newSheetName, vbFromUnicode)) > 25 Then
+      ActiveSheet.Name = Library.cutRight(newSheetName, LenB(StrConv(newSheetName, vbFromUnicode)) - 25) & "..."
+    Else
+      ActiveSheet.Name = newSheetName
+    End If
+  End If
+  Call Library.showDebugForm(funcName, ActiveSheet.Name)
+  
+  Sheets(ActiveSheet.Name).Select
+  ActiveSheet.Tab.ColorIndex = -4142
+  
+  Range("AO3") = ActiveSheet.Name
+  
+  Range("AO1") = Application.UserName
+  Range("AX1") = Format(Date, "yyyy/mm/dd")
+
+  '書式設定----------------------------------
+  '初期値のリスト化
+  With Range("AB16:AE31").Validation
+    .Delete
+    .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:=xlBetween, Formula1:="=defVal_" & setVal("DBMS")
+  End With
+  
+  Range("AF16:AO31").NumberFormatLocal = """YES"""
+  
+  '備考の結合
+  Range("AP16:BB31").Merge True
+  
+  addSheet = ActiveSheet.Name
   
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
 catchError:
-  Call Library.showNotice(400, Err.Description, True)
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
+End Function
+
+'==================================================================================================
+Function chkTableName2SheetName(tableName As String)
+  Dim SheetName As String
+  
+  Const funcName As String = "Ctl_Common.chkTableName2SheetName"
+  On Error GoTo catchError
+  
+  If LenB(StrConv(tableName, vbFromUnicode)) > 25 Then
+    SheetName = "3." & Library.cutRight(tableName, LenB(StrConv(tableName, vbFromUnicode)) - 25) & "..."
+  Else
+    SheetName = "3." & tableName
+  End If
+  If Library.chkSheetExists(tableName) = False Then
+    SheetName = Ctl_Common.addSheet(SheetName)
+  End If
+  
+  Worksheets(SheetName).Select
+  chkTableName2SheetName = SheetName
+  
+  Exit Function
+'エラー発生時--------------------------------------------------------------------------------------
+catchError:
+  Call Library.showNotice(400, funcName & " [" & Err.Number & "]" & Err.Description, True)
 End Function
 
 
@@ -136,7 +192,7 @@ Function makeTblList()
   Dim line As Long, endLine As Long, colLine As Long, endColLine As Long
   Dim sheetList As Object
   Dim targetSheet   As Worksheet
-  Dim sheetName As String
+  Dim SheetName As String
   
   '処理開始--------------------------------------
   'On Error GoTo catchError
@@ -149,7 +205,7 @@ Function makeTblList()
     Call Ctl_ProgressBar.showStart
     Call Library.showDebugForm("runFlg", runFlg)
   End If
-  Call Library.showDebugForm(funcName & "===========================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '----------------------------------------------
   
   sheetTblList.Select
@@ -163,62 +219,65 @@ Function makeTblList()
   
   line = 6
   For Each sheetList In Sheets
-    sheetName = sheetList.Name
+    SheetName = sheetList.Name
     
-    Select Case sheetName
-      Case "設定", "設定-MySQL", "設定-ACC", "Notice", "DataType", "CopyLine", "CopySheet", "Tmp", "表紙", "TBLリスト", "変更履歴", "ER図"
+    Select Case SheetName
+      Case "表紙", "変更履歴", "1.エンティティ", "2.ER図", "5.容量計算", "空白"
       Case Else
-        Call Library.showDebugForm("sheetName", sheetName)
-    
-        sheetTblList.Range("B" & line).FormulaR1C1 = "=ROW()-5"
-        
-        '分類
-        sheetTblList.Range("C" & line) = Sheets(sheetName).Range("C2")
-        
-        '説明
-        sheetTblList.Range(setVal("Cell_dateType") & line) = Sheets(sheetName).Range("E6")
+        If SheetName.Name Like "<*>" Then
+        Else
+          Call Library.showDebugForm("sheetName", SheetName)
       
-        '論理テーブル名
-        If Sheets(sheetName).Range(setVal("Cell_logicalTableName")) <> "" Then
-          With sheetTblList.Range(setVal("Cell_logicalName") & line)
-            .Value = Sheets(sheetName).Range(setVal("Cell_logicalTableName"))
+          sheetTblList.Range("B" & line).FormulaR1C1 = "=ROW()-5"
+          
+          '分類
+          sheetTblList.Range("C" & line) = Sheets(SheetName).Range("C2")
+          
+          '説明
+          sheetTblList.Range("V" & line) = Sheets(SheetName).Range("E6")
+        
+          '論理テーブル名
+          If Sheets(SheetName).Range("F8") <> "" Then
+            With sheetTblList.Range("B" & line)
+              .Value = Sheets(SheetName).Range("F8")
+              .Select
+              .Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=SheetName & "!" & "A9"
+              .Font.Color = RGB(0, 0, 0)
+              .Font.Underline = False
+              .Font.Size = 9
+              .Font.Name = "メイリオ"
+            End With
+          End If
+          
+           '物理テーブル名
+          With sheetTblList.Range("E" & line)
+            .Value = Sheets(SheetName).Range("W5") & "." & Sheets(SheetName).Range("F9")
             .Select
-            .Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=sheetName & "!" & "A9"
+            .Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=SheetName & "!" & "A9"
             .Font.Color = RGB(0, 0, 0)
             .Font.Underline = False
             .Font.Size = 9
             .Font.Name = "メイリオ"
           End With
-        End If
-        
-         '物理テーブル名
-        With sheetTblList.Range("E" & line)
-          .Value = Sheets(sheetName).Range(setVal("Cell_physicalTableName"))
-          .Select
-          .Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=sheetName & "!" & "A9"
-          .Font.Color = RGB(0, 0, 0)
-          .Font.Underline = False
-          .Font.Size = 9
-          .Font.Name = "メイリオ"
-        End With
-        
-        ' シート色と同じ色をセルに設定
-        If Sheets(sheetName).Tab.Color Then
-          With sheetTblList.Range("B" & line & ":U" & line).Interior
-            .Pattern = xlPatternNone
-            .Color = Sheets(sheetName).Tab.Color
-          End With
-        End If
+          
+          ' シート色と同じ色をセルに設定
+          If Sheets(SheetName).Tab.Color Then
+            With sheetTblList.Range("B" & line & ":U" & line).Interior
+              .Pattern = xlPatternNone
+              .Color = Sheets(SheetName).Tab.Color
+            End With
+          End If
         
         
         line = line + 1
+      End If
     End Select
   Next
   
   
   '処理終了--------------------------------------
   'Application.Goto Reference:=Range("A1"), Scroll:=True
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   If runFlg = False Then
     Call Ctl_ProgressBar.showEnd
     Call Library.endScript
@@ -239,10 +298,10 @@ Function IsTable(tableName As String) As Boolean
   
   Select Case setVal("DBMS")
     Case "MSAccess"
-      rslFlg = Ctl_Access.IsTable(Range(setVal("Cell_physicalTableName")))
+      rslFlg = Ctl_Access.IsTable(Range("F9"))
       
     Case "MySQL"
-      rslFlg = Ctl_MySQL.IsTable(Range(setVal("Cell_physicalTableName")))
+      rslFlg = Ctl_MySQL.IsTable(Range("F9"))
       
     Case "PostgreSQL"
       
@@ -271,21 +330,21 @@ Function insertRow()
   Const funcName As String = "Ctl_Common.insertRow"
   
   Call init.Setting
-  Call Library.showDebugForm(funcName & "=============================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '--------------------------
   Set targetSheet = ActiveSheet
   line = ActiveCell.Row
   
   Rows(line & ":" & line).Insert Shift:=xlDown
   
-  sheetCopy.Rows("46:46").copy
+  sheetCopyTable.Rows("46:46").copy
   targetSheet.Range("A" & line).Select
   ActiveSheet.Paste
   targetSheet.Range("B" & line) = "insert"
-  targetSheet.Range(setVal("Cell_logicalName") & line).Select
+  targetSheet.Range("B" & line).Select
   
   '処理終了--------------------------------------
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   '----------------------------------------------
   
   Exit Function
@@ -304,7 +363,7 @@ Function deleteRow()
   Const funcName As String = "Ctl_Common.deleteRow"
   
   Call init.Setting
-  Call Library.showDebugForm(funcName & "=============================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '--------------------------
   Set targetSheet = ActiveSheet
   line = ActiveCell.Row
@@ -316,7 +375,7 @@ Function deleteRow()
   
   
   '処理終了--------------------------------------
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
   '----------------------------------------------
   
   Exit Function
@@ -370,7 +429,7 @@ Function chkEditRow(targetRange As Range, changeVal As String)
 
   
   Const funcName As String = "Ctl_Option.chkEditRow"
-  Call Library.showDebugForm(funcName & "==========================================")
+  Call Library.showDebugForm("StartFun", funcName, "info")
   '--------------------------------------
 
   Call Library.showDebugForm("targetRange.Value ：" & targetRange.Value)
@@ -414,7 +473,7 @@ Function chkEditRow(targetRange As Range, changeVal As String)
 
 
   '処理終了--------------------------------------
-  Call Library.showDebugForm("=================================================================")
+  Call Library.showDebugForm("EndFun  ", funcName, "info")
 
   Exit Function
 'エラー発生時--------------------------------------------------------------------------------------
